@@ -4,7 +4,7 @@ import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, Icon
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     tasks,
-    scratchpadItems,
+    scratchpad,
     globalDocuments,
     projects,
     taskFilter,
@@ -14,27 +14,17 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     onDeleteTask,
     onPostponeTask,
     onOpenTaskDetailModal,
-    onAddScratchpadItem,
-    onToggleScratchpadItem,
-    onDeleteScratchpadItem,
+    onScratchpadChange,
     onOpenGlobalDocumentModal,
     onDeleteGlobalDocument,
     onOpenScratchpad,
 }) => {
     const [newTaskText, setNewTaskText] = useState('');
-    const [newScratchpadItemText, setNewScratchpadItemText] = useState('');
 
     const handleAddTask = () => {
         if (newTaskText.trim()) {
             onAddTask(newTaskText.trim());
             setNewTaskText('');
-        }
-    };
-
-    const handleAddScratchpadItem = () => {
-        if (newScratchpadItemText.trim()) {
-            onAddScratchpadItem(newScratchpadItemText.trim());
-            setNewScratchpadItemText('');
         }
     };
 
@@ -204,39 +194,14 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                             <IconExternalLink />
                         </button>
                     </div>
-                    <div className="scratchpad-checklist">
-                        <div className="scratchpad-input-container">
-                            <input 
-                                type="text"
-                                value={newScratchpadItemText}
-                                onChange={(e) => setNewScratchpadItemText(e.target.value)}
-                                placeholder="Добавить пункт в чек-лист..."
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleAddScratchpadItem();
-                                    }
-                                }}
-                            />
-                            <button onClick={handleAddScratchpadItem} className="add-item-btn"><IconPlus/></button>
-                        </div>
-                        <ul className="scratchpad-list">
-                            {scratchpadItems.length === 0 ? (
-                                <p className="empty-list-message">Ваш чек-лист пуст. Добавьте первый пункт!</p>
-                            ) : (
-                                scratchpadItems.map(item => (
-                                    <li key={item.id} className={item.completed ? 'completed' : ''}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={item.completed} 
-                                            onChange={() => onToggleScratchpadItem(item.id)}
-                                        />
-                                        <span onClick={() => onToggleScratchpadItem(item.id)}>{item.text}</span>
-                                        <button onClick={() => onDeleteScratchpadItem(item.id)}><IconClose /></button>
-                                    </li>
-                                ))
-                            )}
-                        </ul>
+                    <div className="scratchpad-content">
+                        <textarea 
+                            value={scratchpad} 
+                            onChange={(e) => onScratchpadChange(e.target.value)} 
+                            placeholder="Место для быстрых заметок..."
+                            className="scratchpad-textarea"
+                            rows={4}
+                        />
                     </div>
                 </div>
 

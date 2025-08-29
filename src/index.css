@@ -1580,87 +1580,34 @@ input[type=number] { -moz-appearance: textfield; }
     }
 }
 
-/* Scratchpad Checklist Styles */
-.scratchpad-checklist {
+/* Scratchpad Content Styles */
+.scratchpad-content {
     padding: 10px;
 }
 
-.scratchpad-input-container {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-}
-
-.scratchpad-input-container input[type="text"] {
-    flex-grow: 1;
-    padding: 8px;
+.scratchpad-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
     border: 1px solid var(--tg-theme-hint-color);
     border-radius: 8px;
     background-color: var(--tg-theme-secondary-bg-color);
     color: var(--tg-theme-text-color);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
 }
 
-.scratchpad-input-container .add-item-btn {
-    background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
-    border: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.scratchpad-textarea:focus {
+    outline: none;
+    border-color: var(--tg-theme-button-color);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
-.scratchpad-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.scratchpad-list li {
-    display: flex;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--tg-theme-hint-color);
-}
-
-.scratchpad-list li:last-child {
-    border-bottom: none;
-}
-
-.scratchpad-list li input[type="checkbox"] {
-    margin-right: 10px;
-    min-width: 20px; /* Ensure checkbox is visible */
-    min-height: 20px;
-}
-
-.scratchpad-list li span {
-    flex-grow: 1;
-    color: var(--tg-theme-text-color);
-    cursor: pointer;
-}
-
-.scratchpad-list li.completed span {
-    text-decoration: line-through;
+.scratchpad-textarea::placeholder {
     color: var(--tg-theme-hint-color);
-}
-
-.scratchpad-list li button {
-    background: none;
-    border: none;
-    color: var(--tg-theme-hint-color);
-    cursor: pointer;
-    margin-left: 10px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.scratchpad-list li button .icon-wrapper svg {
-    width: 18px;
-    height: 18px;
 }
 
 /* Task Filters */
