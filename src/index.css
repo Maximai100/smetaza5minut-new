@@ -262,7 +262,6 @@ body.dark-theme input[type="date"]::-webkit-calendar-picker-indicator {
 .attach-btn, .remove-btn {
     background: none;
     border: none;
-    color: var(--hint-color);
     cursor: pointer;
     padding: 4px;
     line-height: 1;
@@ -1537,4 +1536,299 @@ input[type=number] { -moz-appearance: textfield; }
         position: fixed;
         width: 100%;
     }
+}
+
+/* Scratchpad Checklist Styles */
+.scratchpad-checklist {
+    padding: 10px;
+}
+
+.scratchpad-input-container {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.scratchpad-input-container input[type="text"] {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 8px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+}
+
+.scratchpad-input-container .add-item-btn {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scratchpad-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.scratchpad-list li {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--tg-theme-hint-color);
+}
+
+.scratchpad-list li:last-child {
+    border-bottom: none;
+}
+
+.scratchpad-list li input[type="checkbox"] {
+    margin-right: 10px;
+    min-width: 20px; /* Ensure checkbox is visible */
+    min-height: 20px;
+}
+
+.scratchpad-list li span {
+    flex-grow: 1;
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+}
+
+.scratchpad-list li.completed span {
+    text-decoration: line-through;
+    color: var(--tg-theme-hint-color);
+}
+
+.scratchpad-list li button {
+    background: none;
+    border: none;
+    color: var(--tg-theme-hint-color);
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scratchpad-list li button .icon-wrapper svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Task Filters */
+.task-filters {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.task-filters button {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 8px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.task-filters button.active {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border-color: var(--tg-theme-button-color);
+}
+
+/* Task List Item Improvements */
+.task-list li {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    padding: 8px 0;
+    border-bottom: 1px solid var(--tg-theme-hint-color);
+}
+
+.task-list li:last-child {
+    border-bottom: none;
+}
+
+.task-list li input[type="checkbox"] {
+    margin-right: 10px;
+    min-width: 20px; /* Ensure checkbox is visible */
+    min-height: 20px;
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    margin-top: 2px; /* Adjust vertical alignment */
+}
+
+.task-list li .task-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.task-list li .task-info span {
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+    word-break: break-word; /* Allow long text to break */
+}
+
+.task-list li.completed .task-info span {
+    text-decoration: line-through;
+    color: var(--tg-theme-hint-color);
+}
+
+.task-list li .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 10px; /* Row and column gap */
+    font-size: 0.8em;
+    color: var(--tg-theme-hint-color);
+    margin-top: 4px;
+}
+
+.task-list li .task-project,
+.task-list li .task-due-date {
+    background-color: var(--tg-theme-secondary-bg-color);
+    padding: 3px 8px;
+    border-radius: 5px;
+    white-space: nowrap; /* Prevent wrapping for these tags */
+}
+
+.task-list li .task-due-date.overdue {
+    color: var(--tg-theme-destructive-text-color);
+    background-color: var(--tg-theme-destructive-bg-color);
+}
+
+.task-list li button {
+    background: none;
+    border: none;
+    color: var(--tg-theme-hint-color);
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.task-list li button .icon-wrapper svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Task Detail Modal */
+.task-detail-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.task-detail-modal-body label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--tg-theme-text-color);
+}
+
+.task-detail-modal-body input[type="text"],
+.task-detail-modal-body input[type="date"],
+.task-detail-modal-body select,
+.task-detail-modal-body textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 8px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    box-sizing: border-box;
+}
+
+.task-detail-modal-body textarea {
+    resize: vertical;
+}
+
+.subtasks-section,
+.attachments-section,
+.tags-section,
+.comments-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--tg-theme-hint-color);
+}
+
+.subtasks-section h3,
+.attachments-section h3,
+.tags-section h3,
+.comments-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--tg-theme-text-color);
+}
+
+.subtask-input-container {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.subtask-input-container input[type="text"] {
+    flex-grow: 1;
+}
+
+.subtask-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.subtask-list li {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--tg-theme-hint-color);
+}
+
+.subtask-list li:last-child {
+    border-bottom: none;
+}
+
+.subtask-list li input[type="checkbox"] {
+    margin-right: 10px;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+.subtask-list li span {
+    flex-grow: 1;
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+}
+
+.subtask-list li.completed span {
+    text-decoration: line-through;
+    color: var(--tg-theme-hint-color);
+}
+
+.subtask-list li button {
+    background: none;
+    border: none;
+    color: var(--tg-theme-hint-color);
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subtask-list li button .icon-wrapper svg {
+    width: 18px;
+    height: 18px;
 }

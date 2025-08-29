@@ -8,7 +8,7 @@ import {
     PhotoReport, Document, WorkStage, Note, InventoryItem, InventoryNote, Task, SettingsModalProps, EstimatesListModalProps, LibraryModalProps, 
     NewProjectModalProps, FinanceEntryModalProps, PhotoReportModalProps, PhotoViewerModalProps, ShoppingListModalProps, 
     DocumentUploadModalProps, WorkStageModalProps, NoteModalProps, ActGenerationModalProps, AISuggestModalProps, 
-    EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, WorkspaceViewProps, ScratchpadViewProps
+    EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, WorkspaceViewProps, ScratchpadViewProps, TaskFilter, ScratchpadItem
 } from './types';
 import { tg, safeShowAlert, safeShowConfirm, generateNewEstimateNumber, resizeImage, readFileAsDataURL, numberToWordsRu } from './utils';
 import { statusMap } from './constants';
@@ -28,6 +28,7 @@ import { NoteModal } from './components/modals/NoteModal';
 import { ActGenerationModal } from './components/modals/ActGenerationModal';
 import { AISuggestModal } from './components/modals/AISuggestModal';
 import { AddToolModal } from './components/modals/AddToolModal';
+import { TaskDetailModal } from './components/modals/TaskDetailModal'; // Import TaskDetailModal
 import { EstimateView } from './components/views/EstimateView';
 import { ProjectsListView } from './components/views/ProjectsListView';
 import { ProjectDetailView } from './components/views/ProjectDetailView';
@@ -55,7 +56,9 @@ const App: React.FC = () => {
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
     const [inventoryNotes, setInventoryNotes] = useState<InventoryNote[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [scratchpad, setScratchpad] = useState('');
+    const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [scratchpadItems, setScratchpadItems] = useState<ScratchpadItem[]>([]);
     
     // --- Current Estimate State ---
     const [activeEstimateId, setActiveEstimateId] = useState<number | null>(null);
@@ -93,13 +96,14 @@ const App: React.FC = () => {
     const [isActModalOpen, setIsActModalOpen] = useState(false);
     const [isAISuggestModalOpen, setIsAISuggestModalOpen] = useState(false);
     const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false);
+    const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false); // Added
     const [isScratchpadModalOpen, setIsScratchpadModalOpen] = useState(false);
     const [actModalTotal, setActModalTotal] = useState(0);
     const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
     const [isDirty, setIsDirty] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-        const [draggingItem, setDraggingItem] = useState<number | null>(null);
+    const [draggingItem, setDraggingItem] = useState<number | null>(null);
 
     const lastFocusedElement = useRef<HTMLElement | null>(null);
     const activeModalName = useRef<string | null>(null);
@@ -123,6 +127,36 @@ const App: React.FC = () => {
         }
     }, []);
 
+    const handleOpenTaskDetailModal = (task: Task | null) => {
+        setEditingTask(task);
+        openModal(setIsTaskDetailModalOpen, 'taskDetail');
+    };
+
+    const handleSaveTaskDetail = (taskToSave: Task) => {
+        let updatedTasks;
+        if (tasks.some(t => t.id === taskToSave.id)) {
+            updatedTasks = tasks.map(t => t.id === taskToSave.id ? taskToSave : t);
+        } else {
+            updatedTasks = [taskToSave, ...tasks];
+        }
+        setTasks(updatedTasks);
+        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+        closeModal(setIsTaskDetailModalOpen);
+        setEditingTask(null);
+    };
+
+    const handleDeleteTaskDetail = (id: number) => {
+        safeShowConfirm("Вы уверены, что хотите удалить эту задачу?", (ok) => {
+            if (ok) {
+                const updatedTasks = tasks.filter(t => t.id !== id);
+                setTasks(updatedTasks);
+                localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+                closeModal(setIsTaskDetailModalOpen);
+                setEditingTask(null);
+            }
+        });
+    };
+
     // Effect for Escape key to close modals
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -143,6 +177,7 @@ const App: React.FC = () => {
                     case 'act': closeModal(setIsActModalOpen); break;
                     case 'aiSuggest': closeModal(setIsAISuggestModalOpen); break;
                     case 'addTool': closeModal(setIsAddToolModalOpen); break;
+                    case 'taskDetail': closeModal(setIsTaskDetailModalOpen); break; // Added
                     default: break;
                 }
             }
@@ -322,7 +357,20 @@ const App: React.FC = () => {
         if (savedTasks) { try { setTasks(JSON.parse(savedTasks)); } catch (e) { console.error("Failed to parse tasks", e); } }
 
         const savedScratchpad = localStorage.getItem('scratchpad');
-        if (savedScratchpad) { setScratchpad(savedScratchpad); }
+        if (savedScratchpad) {
+            try {
+                const parsedScratchpad = JSON.parse(savedScratchpad);
+                if (Array.isArray(parsedScratchpad)) {
+                    setScratchpadItems(parsedScratchpad);
+                } else {
+                    // Migrate old string scratchpad to new checklist format
+                    setScratchpadItems([{ id: Date.now(), text: parsedScratchpad, completed: false }]);
+                }
+            } catch (e) {
+                // If parsing fails, it's likely an old string format
+                setScratchpadItems([{ id: Date.now(), text: savedScratchpad, completed: false }]);
+            }
+        }
 
     }, []);
     
@@ -887,7 +935,8 @@ const App: React.FC = () => {
         let updatedStages;
         if (editingWorkStage?.id) {
             updatedStages = workStages.map(ws => ws.id === editingWorkStage.id ? { ...ws, ...stageData } : ws);
-        } else {
+        }
+        else {
             const newStage: WorkStage = { ...stageData, id: Date.now(), projectId: activeProjectId };
             updatedStages = [newStage, ...workStages];
         }
@@ -912,7 +961,8 @@ const App: React.FC = () => {
         let updatedNotes;
         if (editingNote?.id) {
             updatedNotes = notes.map(n => n.id === editingNote.id ? { ...n, text, lastModified: Date.now() } : n);
-        } else {
+        }
+        else {
             const newNote: Note = { text, id: Date.now(), projectId: activeProjectId, lastModified: Date.now() };
             updatedNotes = [newNote, ...notes];
         }
@@ -962,7 +1012,8 @@ const App: React.FC = () => {
 
     // --- Workspace Handlers ---
     const handleAddTask = (text: string) => {
-        const newTask: Task = { id: Date.now(), text, completed: false };
+        const today = new Date().toISOString().split('T')[0];
+        const newTask: Task = { id: Date.now(), text, completed: false, dueDate: today, projectId: undefined };
         const updatedTasks = [newTask, ...tasks];
         setTasks(updatedTasks);
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
@@ -980,9 +1031,25 @@ const App: React.FC = () => {
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     };
 
-    const handleScratchpadChange = (text: string) => {
-        setScratchpad(text);
-        localStorage.setItem('scratchpad', text);
+    const handleAddScratchpadItem = (text: string) => {
+        const newItem = { id: Date.now(), text, completed: false };
+        const updatedItems = [...scratchpadItems, newItem];
+        setScratchpadItems(updatedItems);
+        localStorage.setItem('scratchpad', JSON.stringify(updatedItems));
+    };
+
+    const handleToggleScratchpadItem = (id: number) => {
+        const updatedItems = scratchpadItems.map(item => 
+            item.id === id ? { ...item, completed: !item.completed } : item
+        );
+        setScratchpadItems(updatedItems);
+        localStorage.setItem('scratchpad', JSON.stringify(updatedItems));
+    };
+
+    const handleDeleteScratchpadItem = (id: number) => {
+        const updatedItems = scratchpadItems.filter(item => item.id !== id);
+        setScratchpadItems(updatedItems);
+        localStorage.setItem('scratchpad', JSON.stringify(updatedItems));
     };
 
     const handleBackup = () => {
@@ -998,7 +1065,7 @@ const App: React.FC = () => {
             libraryItems,
             companyProfile,
             tasks,
-            scratchpad,
+            scratchpadItems,
         };
 
         const json = JSON.stringify(backupData, null, 2);
@@ -1034,7 +1101,7 @@ const App: React.FC = () => {
                 setLibraryItems(restoredData.libraryItems || []);
                 setCompanyProfile(restoredData.companyProfile || { name: '', details: '', logo: null });
                 setTasks(restoredData.tasks || []);
-                setScratchpad(restoredData.scratchpad || '');
+                setScratchpadItems(restoredData.scratchpadItems || []);
 
                 localStorage.setItem('estimatesData', JSON.stringify({ estimates: restoredData.estimates || [], activeEstimateId: null }));
                 localStorage.setItem('estimateTemplates', JSON.stringify(restoredData.templates || []));
@@ -1047,7 +1114,7 @@ const App: React.FC = () => {
                 localStorage.setItem('itemLibrary', JSON.stringify(restoredData.libraryItems || []));
                 localStorage.setItem('companyProfile', JSON.stringify(restoredData.companyProfile || { name: '', details: '', logo: null }));
                 localStorage.setItem('tasks', JSON.stringify(restoredData.tasks || []));
-                localStorage.setItem('scratchpad', restoredData.scratchpad || '');
+                localStorage.setItem('scratchpad', JSON.stringify(restoredData.scratchpadItems || []));
 
                 safeShowAlert('Данные успешно восстановлены!');
             } catch (error) {
@@ -1064,6 +1131,35 @@ const App: React.FC = () => {
         openModal(setIsActModalOpen, 'act');
     };
 
+    const filteredTasks = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of current week (Sunday)
+
+        return tasks.filter(task => {
+            if (taskFilter === 'all') return true;
+            if (taskFilter === 'completed') return task.completed;
+            if (task.completed) return false; // Don't show completed tasks in other filters
+
+            const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+            if (!taskDueDate) return false; // Tasks without due date are not filtered by date
+
+            taskDueDate.setHours(0, 0, 0, 0);
+
+            if (taskFilter === 'today') {
+                return taskDueDate.getTime() === today.getTime();
+            }
+            if (taskFilter === 'week') {
+                return taskDueDate.getTime() >= today.getTime() && taskDueDate.getTime() <= endOfWeek.getTime();
+            }
+            if (taskFilter === 'overdue') {
+                return taskDueDate.getTime() < today.getTime();
+            }
+            return true;
+        });
+    }, [tasks, taskFilter]);
+
     const themeIcon = useCallback(() => {
         return themeMode === 'light' ? <IconSun /> : <IconMoon />;
     }, [themeMode]);
@@ -1072,13 +1168,19 @@ const App: React.FC = () => {
         switch (activeView) {
             case 'workspace':
                 return <WorkspaceView 
-                    tasks={tasks}
-                    scratchpad={scratchpad}
+                    tasks={filteredTasks}
+                    scratchpadItems={scratchpadItems}
                     globalDocuments={globalDocuments}
+                    projects={projects}
+                    taskFilter={taskFilter}
+                    setTaskFilter={setTaskFilter}
                     onAddTask={handleAddTask}
                     onToggleTask={handleToggleTask}
                     onDeleteTask={handleDeleteTask}
-                    onScratchpadChange={handleScratchpadChange}
+                    onOpenTaskDetailModal={handleOpenTaskDetailModal}
+                    onAddScratchpadItem={handleAddScratchpadItem}
+                    onToggleScratchpadItem={handleToggleScratchpadItem}
+                    onDeleteScratchpadItem={handleDeleteScratchpadItem}
                     onOpenGlobalDocumentModal={() => openModal(setIsGlobalDocumentModalOpen, 'globalDocumentUpload')}
                     onDeleteGlobalDocument={handleDeleteGlobalDocument}
                     onOpenScratchpad={() => setActiveView('scratchpad')}
@@ -1156,8 +1258,8 @@ const App: React.FC = () => {
                 />;
             case 'scratchpad':
                 return <ScratchpadView
-                    content={scratchpad}
-                    onSave={handleScratchpadChange}
+                    content={''}
+                    onSave={() => {}} // No direct save from here anymore
                     onBack={() => setActiveView('workspace')}
                 />;
             case 'estimate':
@@ -1216,13 +1318,13 @@ const App: React.FC = () => {
         isFinanceModalOpen || isPhotoReportModalOpen || viewingPhoto !== null ||
         isShoppingListOpen || isDocumentModalOpen || isGlobalDocumentModalOpen ||
         isWorkStageModalOpen || isNoteModalOpen || isActModalOpen || isAISuggestModalOpen ||
-        isAddToolModalOpen
+        isAddToolModalOpen || isTaskDetailModalOpen // Added
     ), [
         isSettingsOpen, isEstimatesListOpen, isLibraryOpen, isProjectModalOpen,
         isFinanceModalOpen, isPhotoReportModalOpen, viewingPhoto,
         isShoppingListOpen, isDocumentModalOpen, isGlobalDocumentModalOpen,
         isWorkStageModalOpen, isNoteModalOpen, isActModalOpen, isAISuggestModalOpen,
-        isAddToolModalOpen
+        isAddToolModalOpen, isTaskDetailModalOpen // Added
     ]);
 
     return (
@@ -1280,6 +1382,15 @@ const App: React.FC = () => {
             {isActModalOpen && activeProject && <ActGenerationModal onClose={() => closeModal(setIsActModalOpen)} project={activeProject} profile={companyProfile} totalAmount={actModalTotal} showAlert={safeShowAlert} />}
             {isAISuggestModalOpen && <AISuggestModal onClose={() => closeModal(setIsAISuggestModalOpen)} onAddItems={handleAddItemsFromAI} showAlert={safeShowAlert} />}
             {isAddToolModalOpen && <AddToolModal onClose={() => closeModal(setIsAddToolModalOpen)} onSave={handleAddInventoryItem} />}
+            {isTaskDetailModalOpen && <TaskDetailModal 
+                task={editingTask} 
+                projects={projects}
+                onClose={() => closeModal(setIsTaskDetailModalOpen)} 
+                onSave={handleSaveTaskDetail} 
+                onDelete={handleDeleteTaskDetail} 
+                showAlert={safeShowAlert}
+                onInputFocus={handleInputFocus}
+            />}
         </div>
     );
 }
