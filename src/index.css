@@ -1078,6 +1078,40 @@ body.dark-theme .bottom-nav {
     cursor: default !important;
 }
 
+/* Inventory specific styles */
+.inventory-list .list-item {
+    min-height: auto;
+    padding: 8px 12px;
+}
+
+.inventory-list .list-item-info {
+    min-height: auto;
+    gap: 2px;
+}
+
+.inventory-list .list-item-info strong {
+    line-height: 1.2;
+    min-height: auto;
+}
+
+.inventory-list .list-item-actions {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.inventory-list .list-item-actions select {
+    font-size: 12px;
+    padding: 4px 6px;
+    min-width: 80px;
+}
+
+.inventory-list .list-item-actions .btn {
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
 /* Notes styles */
 .note-item {
     padding: 0;
@@ -1103,8 +1137,13 @@ body.dark-theme .bottom-nav {
     margin-top: 8px;
 }
 .note-textarea {
-    min-height: 150px;
+    min-height: 80px;
     resize: vertical;
+}
+
+.add-note-form textarea {
+    min-height: 60px;
+    max-height: 120px;
 }
 
 /* Act Generation Modal Styles */

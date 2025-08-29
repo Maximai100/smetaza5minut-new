@@ -64,7 +64,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                             <h3>Список инструментов ({inventoryItems.length})</h3>
                         </div>
                         <div className="project-section-body">
-                            <div className="project-items-list">
+                            <div className="project-items-list inventory-list">
                                 {inventoryItems.length > 0 ? inventoryItems.map(item => (
                                     <div key={item.id} className="list-item" onClick={() => onOpenToolDetail(item)}>
                                         <div className="list-item-info">
@@ -97,7 +97,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                             <h3>Список расходников ({consumables.length})</h3>
                         </div>
                         <div className="project-section-body">
-                            <div className="project-items-list">
+                            <div className="project-items-list inventory-list">
                                 {consumables.length > 0 ? consumables.map(item => (
                                     <div key={item.id} className="list-item">
                                         <div className="list-item-info">
