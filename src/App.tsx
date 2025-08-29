@@ -8,7 +8,7 @@ import {
     PhotoReport, Document, WorkStage, Note, InventoryItem, InventoryNote, Task, SettingsModalProps, EstimatesListModalProps, LibraryModalProps, 
     NewProjectModalProps, FinanceEntryModalProps, PhotoReportModalProps, PhotoViewerModalProps, ShoppingListModalProps, 
     DocumentUploadModalProps, WorkStageModalProps, NoteModalProps, ActGenerationModalProps, AISuggestModalProps, 
-    EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, WorkspaceViewProps, ScratchpadViewProps
+    EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, WorkspaceViewProps, ScratchpadViewProps, TaskFilter, ScratchpadItem
 } from './types';
 import { tg, safeShowAlert, safeShowConfirm, generateNewEstimateNumber, resizeImage, readFileAsDataURL, numberToWordsRu } from './utils';
 import { statusMap } from './constants';
@@ -28,6 +28,7 @@ import { NoteModal } from './components/modals/NoteModal';
 import { ActGenerationModal } from './components/modals/ActGenerationModal';
 import { AISuggestModal } from './components/modals/AISuggestModal';
 import { AddToolModal } from './components/modals/AddToolModal';
+import { TaskDetailModal } from './components/modals/TaskDetailModal'; // Import TaskDetailModal
 import { EstimateView } from './components/views/EstimateView';
 import { ProjectsListView } from './components/views/ProjectsListView';
 import { ProjectDetailView } from './components/views/ProjectDetailView';
@@ -95,14 +96,14 @@ const App: React.FC = () => {
     const [isActModalOpen, setIsActModalOpen] = useState(false);
     const [isAISuggestModalOpen, setIsAISuggestModalOpen] = useState(false);
     const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false);
-    const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
+    const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false); // Added
     const [isScratchpadModalOpen, setIsScratchpadModalOpen] = useState(false);
     const [actModalTotal, setActModalTotal] = useState(0);
     const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
     const [isDirty, setIsDirty] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-        const [draggingItem, setDraggingItem] = useState<number | null>(null);
+    const [draggingItem, setDraggingItem] = useState<number | null>(null);
 
     const lastFocusedElement = useRef<HTMLElement | null>(null);
     const activeModalName = useRef<string | null>(null);
@@ -176,7 +177,7 @@ const App: React.FC = () => {
                     case 'act': closeModal(setIsActModalOpen); break;
                     case 'aiSuggest': closeModal(setIsAISuggestModalOpen); break;
                     case 'addTool': closeModal(setIsAddToolModalOpen); break;
-                    case 'taskDetail': closeModal(setIsTaskDetailModalOpen); break;
+                    case 'taskDetail': closeModal(setIsTaskDetailModalOpen); break; // Added
                     default: break;
                 }
             }
@@ -934,7 +935,8 @@ const App: React.FC = () => {
         let updatedStages;
         if (editingWorkStage?.id) {
             updatedStages = workStages.map(ws => ws.id === editingWorkStage.id ? { ...ws, ...stageData } : ws);
-        } else {
+        }
+        else {
             const newStage: WorkStage = { ...stageData, id: Date.now(), projectId: activeProjectId };
             updatedStages = [newStage, ...workStages];
         }
@@ -959,7 +961,8 @@ const App: React.FC = () => {
         let updatedNotes;
         if (editingNote?.id) {
             updatedNotes = notes.map(n => n.id === editingNote.id ? { ...n, text, lastModified: Date.now() } : n);
-        } else {
+        }
+        else {
             const newNote: Note = { text, id: Date.now(), projectId: activeProjectId, lastModified: Date.now() };
             updatedNotes = [newNote, ...notes];
         }
@@ -1161,35 +1164,6 @@ const App: React.FC = () => {
         return themeMode === 'light' ? <IconSun /> : <IconMoon />;
     }, [themeMode]);
 
-    const filteredTasks = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of current week (Sunday)
-
-        return tasks.filter(task => {
-            if (taskFilter === 'all') return true;
-            if (taskFilter === 'completed') return task.completed;
-            if (task.completed) return false; // Don't show completed tasks in other filters
-
-            const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
-            if (!taskDueDate) return false; // Tasks without due date are not filtered by date
-
-            taskDueDate.setHours(0, 0, 0, 0);
-
-            if (taskFilter === 'today') {
-                return taskDueDate.getTime() === today.getTime();
-            }
-            if (taskFilter === 'week') {
-                return taskDueDate.getTime() >= today.getTime() && taskDueDate.getTime() <= endOfWeek.getTime();
-            }
-            if (taskFilter === 'overdue') {
-                return taskDueDate.getTime() < today.getTime();
-            }
-            return true;
-        });
-    }, [tasks, taskFilter]);
-
     const renderView = () => {
         switch (activeView) {
             case 'workspace':
@@ -1284,8 +1258,8 @@ const App: React.FC = () => {
                 />;
             case 'scratchpad':
                 return <ScratchpadView
-                    content={scratchpad}
-                    onSave={handleScratchpadChange}
+                    content={''}
+                    onSave={() => {}} // No direct save from here anymore
                     onBack={() => setActiveView('workspace')}
                 />;
             case 'estimate':
@@ -1344,13 +1318,13 @@ const App: React.FC = () => {
         isFinanceModalOpen || isPhotoReportModalOpen || viewingPhoto !== null ||
         isShoppingListOpen || isDocumentModalOpen || isGlobalDocumentModalOpen ||
         isWorkStageModalOpen || isNoteModalOpen || isActModalOpen || isAISuggestModalOpen ||
-        isAddToolModalOpen
+        isAddToolModalOpen || isTaskDetailModalOpen // Added
     ), [
         isSettingsOpen, isEstimatesListOpen, isLibraryOpen, isProjectModalOpen,
         isFinanceModalOpen, isPhotoReportModalOpen, viewingPhoto,
         isShoppingListOpen, isDocumentModalOpen, isGlobalDocumentModalOpen,
         isWorkStageModalOpen, isNoteModalOpen, isActModalOpen, isAISuggestModalOpen,
-        isAddToolModalOpen
+        isAddToolModalOpen, isTaskDetailModalOpen // Added
     ]);
 
     return (
