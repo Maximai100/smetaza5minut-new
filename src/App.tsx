@@ -1,19 +1,15 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-
-import { GoogleGenAI } from '@google/genai';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { 
     TelegramWebApp, Item, LibraryItem, CompanyProfile, EstimateStatus, ThemeMode, Estimate, Project, FinanceEntry, 
     PhotoReport, Document, WorkStage, Note, InventoryItem, InventoryNote, Task, SettingsModalProps, EstimatesListModalProps, LibraryModalProps, 
     NewProjectModalProps, FinanceEntryModalProps, PhotoReportModalProps, PhotoViewerModalProps, ShoppingListModalProps, 
     DocumentUploadModalProps, WorkStageModalProps, NoteModalProps, ActGenerationModalProps, AISuggestModalProps, 
-    EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, WorkspaceViewProps, ScratchpadViewProps, TaskFilter, ScratchpadItem
+    EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, 
+    WorkspaceViewProps, ScratchpadViewProps, TaskFilter, TaskFilters, ScratchpadItem
 } from './types';
 import { tg, safeShowAlert, safeShowConfirm, generateNewEstimateNumber, resizeImage, readFileAsDataURL, numberToWordsRu } from './utils';
 import { statusMap } from './constants';
 import { Icon, IconPlus, IconClose, IconEdit, IconTrash, IconDocument, IconFolder, IconSettings, IconBook, IconClipboard, IconCart, IconDownload, IconPaperclip, IconDragHandle, IconProject, IconChevronRight, IconSparkles, IconSun, IconMoon, IconContrast, IconCreditCard, IconCalendar, IconMessageSquare, IconImage, IconTrendingUp, IconHome } from './components/common/Icon';
-import { Loader } from './components/common/Loader';
+import { Loader } => './components/common/Loader';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { EstimatesListModal } from './components/modals/EstimatesListModal';
 import { LibraryModal } from './components/modals/LibraryModal';
@@ -28,7 +24,8 @@ import { NoteModal } from './components/modals/NoteModal';
 import { ActGenerationModal } from './components/modals/ActGenerationModal';
 import { AISuggestModal } from './components/modals/AISuggestModal';
 import { AddToolModal } from './components/modals/AddToolModal';
-import { TaskDetailModal } from './components/modals/TaskDetailModal'; // Import TaskDetailModal
+import { TaskDetailModal } from './components/modals/TaskDetailModal';
+import { FilterModal } from './components/modals/FilterModal';
 import { EstimateView } from './components/views/EstimateView';
 import { ProjectsListView } from './components/views/ProjectsListView';
 import { ProjectDetailView } from './components/views/ProjectDetailView';
@@ -36,10 +33,11 @@ import { InventoryView } from './components/views/InventoryView';
 import { ReportsView } from './components/views/ReportsView';
 import { WorkspaceView } from './components/views/WorkspaceView';
 import { ScratchpadView } from './components/views/ScratchpadView';
+import { ToolDetailView } from './components/views/ToolDetailView';
 
 const App: React.FC = () => {
     // --- App Navigation State ---
-    const [activeView, setActiveView] = useState<'workspace' | 'estimate' | 'projects' | 'projectDetail' | 'inventory' | 'reports' | 'scratchpad'>('workspace');
+    const [activeView, setActiveView] = useState<'workspace' | 'estimate' | 'projects' | 'projectDetail' | 'inventory' | 'reports' | 'scratchpad' | 'toolDetail'>('workspace');
 
     // --- Data State ---
     const [estimates, setEstimates] = useState<Estimate[]>([]);
@@ -57,7 +55,9 @@ const App: React.FC = () => {
     const [inventoryNotes, setInventoryNotes] = useState<InventoryNote[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
+    const [taskAdvancedFilters, setTaskAdvancedFilters] = useState<TaskFilters>({ project: null, executor: '', tags: '' });
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [activeInventoryItemId, setActiveInventoryItemId] = useState<number | null>(null);
     const [scratchpad, setScratchpad] = useState('');
     
     // --- Current Estimate State ---
@@ -97,6 +97,7 @@ const App: React.FC = () => {
     const [isAISuggestModalOpen, setIsAISuggestModalOpen] = useState(false);
     const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false);
     const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false); // Added
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isScratchpadModalOpen, setIsScratchpadModalOpen] = useState(false);
     const [actModalTotal, setActModalTotal] = useState(0);
     const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
@@ -352,6 +353,9 @@ const App: React.FC = () => {
 
         const savedInventoryNotes = localStorage.getItem('inventoryNotes');
         if (savedInventoryNotes) { try { setInventoryNotes(JSON.parse(savedInventoryNotes)); } catch (e) { console.error("Failed to parse inventory notes", e); } }
+
+        const savedConsumables = localStorage.getItem('consumables');
+        if (savedConsumables) { try { setConsumables(JSON.parse(savedConsumables)); } catch (e) { console.error("Failed to parse consumables", e); } }
 
         const savedTasks = localStorage.getItem('tasks');
         if (savedTasks) { try { setTasks(JSON.parse(savedTasks)); } catch (e) { console.error("Failed to parse tasks", e); } }
@@ -999,6 +1003,36 @@ const App: React.FC = () => {
         localStorage.setItem('inventoryNotes', JSON.stringify(updatedNotes));
     };
 
+    const handleOpenToolDetail = (tool: InventoryItem) => {
+        setActiveInventoryItemId(tool.id);
+        setActiveView('toolDetail');
+    };
+
+    const handleSaveToolDetail = (toolToSave: InventoryItem) => {
+        let updatedItems;
+        if (inventoryItems.some(item => item.id === toolToSave.id)) {
+            updatedItems = inventoryItems.map(item => item.id === toolToSave.id ? toolToSave : item);
+        } else {
+            updatedItems = [toolToSave, ...inventoryItems];
+        }
+        setInventoryItems(updatedItems);
+        localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
+        setActiveView('inventory');
+        setActiveInventoryItemId(null);
+    };
+
+    const handleDeleteToolDetail = (id: number) => {
+        safeShowConfirm("Вы уверены, что хотите удалить этот инструмент?", (ok) => {
+            if (ok) {
+                const updatedItems = inventoryItems.filter(item => item.id !== id);
+                setInventoryItems(updatedItems);
+                localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
+                setActiveView('inventory');
+                setActiveInventoryItemId(null);
+            }
+        });
+    };
+
     // --- Workspace Handlers ---
     const handleAddTask = (text: string) => {
         const today = new Date().toISOString().split('T')[0];
@@ -1068,6 +1102,7 @@ const App: React.FC = () => {
             companyProfile,
             tasks,
             scratchpad,
+            consumables,
         };
 
         const json = JSON.stringify(backupData, null, 2);
@@ -1104,6 +1139,7 @@ const App: React.FC = () => {
                 setCompanyProfile(restoredData.companyProfile || { name: '', details: '', logo: null });
                 setTasks(restoredData.tasks || []);
                 setScratchpad(restoredData.scratchpad || '');
+                setConsumables(restoredData.consumables || []);
 
                 localStorage.setItem('estimatesData', JSON.stringify({ estimates: restoredData.estimates || [], activeEstimateId: null }));
                 localStorage.setItem('estimateTemplates', JSON.stringify(restoredData.templates || []));
@@ -1117,6 +1153,7 @@ const App: React.FC = () => {
                 localStorage.setItem('companyProfile', JSON.stringify(restoredData.companyProfile || { name: '', details: '', logo: null }));
                 localStorage.setItem('tasks', JSON.stringify(restoredData.tasks || []));
                 localStorage.setItem('scratchpad', restoredData.scratchpad || '');
+                localStorage.setItem('consumables', JSON.stringify(restoredData.consumables || []));
 
                 safeShowAlert('Данные успешно восстановлены!');
             } catch (error) {
@@ -1138,6 +1175,10 @@ const App: React.FC = () => {
     const themeIcon = useCallback(() => {
         return themeMode === 'light' ? <IconSun /> : <IconMoon />;
     }, [themeMode]);
+
+    const handleApplyTaskFilters = (filters: TaskFilters) => {
+        setTaskAdvancedFilters(filters);
+    };
 
     const renderView = () => {
         switch (activeView) {
@@ -1217,12 +1258,31 @@ const App: React.FC = () => {
                     inventoryItems={inventoryItems}
                     inventoryNotes={inventoryNotes}
                     projects={projects}
+                    consumables={consumables}
                     onAddItem={handleAddInventoryItem}
                     onUpdateItem={handleUpdateInventoryItem}
                     onDeleteItem={handleDeleteInventoryItem}
                     onAddNote={handleAddInventoryNote}
                     onDeleteNote={handleDeleteInventoryNote}
                     onOpenAddToolModal={() => openModal(setIsAddToolModalOpen, 'addTool')}
+                    onOpenToolDetail={handleOpenToolDetail}
+                    onAddConsumable={handleAddConsumable}
+                    onUpdateConsumable={handleUpdateConsumable}
+                    onDeleteConsumable={handleDeleteConsumable}
+                />;
+            case 'toolDetail':
+                const selectedTool = inventoryItems.find(item => item.id === activeInventoryItemId);
+                if (!selectedTool) {
+                    setActiveView('inventory');
+                    return null;
+                }
+                return <ToolDetailView
+                    tool={selectedTool}
+                    projects={projects}
+                    onClose={() => setActiveView('inventory')}
+                    onSave={handleSaveToolDetail}
+                    onDelete={handleDeleteToolDetail}
+                    showAlert={safeShowAlert}
                 />;
             case 'reports':
                 return <ReportsView
@@ -1364,6 +1424,12 @@ const App: React.FC = () => {
                 onDelete={handleDeleteTaskDetail} 
                 showAlert={safeShowAlert}
                 onInputFocus={handleInputFocus}
+            />}
+            {isFilterModalOpen && <FilterModal 
+                onClose={() => closeModal(setIsFilterModalOpen)}
+                onApply={handleApplyTaskFilters}
+                initialFilters={taskAdvancedFilters}
+                projects={projects}
             />}
         </div>
     );

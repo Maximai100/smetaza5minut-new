@@ -119,6 +119,27 @@ export interface InventoryItem {
     id: number;
     name: string;
     location: string; // "На базе" or projectId
+    photo?: string | null;
+    serialNumber?: string;
+    purchaseDate?: string;
+    price?: number;
+    condition?: ToolCondition;
+    movementHistory?: ToolMovement[];
+}
+
+export type ToolCondition = 'Отличное' | 'Требует обслуживания' | 'В ремонте';
+
+export interface ToolMovement {
+    date: string;
+    from: string;
+    to: string;
+    notes?: string;
+}
+
+export interface ConsumableItem {
+    id: number;
+    name: string;
+    quantity: number;
 }
 
 export interface InventoryNote {
@@ -326,12 +347,17 @@ export interface InventoryViewProps {
     inventoryItems: InventoryItem[];
     inventoryNotes: InventoryNote[];
     projects: Project[];
+    consumables: ConsumableItem[];
     onAddItem: (item: Omit<InventoryItem, 'id'>) => void;
     onUpdateItem: (item: InventoryItem) => void;
     onDeleteItem: (id: number) => void;
     onAddNote: (note: Omit<InventoryNote, 'id' | 'date'>) => void;
     onDeleteNote: (id: number) => void;
     onOpenAddToolModal: () => void;
+    onOpenToolDetail: (tool: InventoryItem) => void;
+    onAddConsumable: (item: Omit<ConsumableItem, 'id'>) => void;
+    onUpdateConsumable: (item: ConsumableItem) => void;
+    onDeleteConsumable: (id: number) => void;
 }
 
 export interface AddToolModalProps {
@@ -352,11 +378,13 @@ export interface WorkspaceViewProps {
     projects: Project[];
     taskFilter: TaskFilter;
     setTaskFilter: React.Dispatch<React.SetStateAction<TaskFilter>>;
+    taskAdvancedFilters: TaskFilters;
     onAddTask: (text: string) => void;
     onToggleTask: (id: number) => void;
     onDeleteTask: (id: number) => void;
     onPostponeTask: (id: number, days: number) => void;
     onOpenTaskDetailModal: (task: Task | null) => void;
+    onOpenFilterModal: () => void;
     onScratchpadChange: (text: string) => void;
     onOpenGlobalDocumentModal: () => void;
     onDeleteGlobalDocument: (id: number) => void;
@@ -399,4 +427,17 @@ export interface Task {
     comments?: string;
     subtasks?: Subtask[];
     tags?: string[];
+}
+
+export interface TaskFilters {
+    project: number | null;
+    executor: string;
+    tags: string;
+}
+
+export interface FilterModalProps {
+    onClose: () => void;
+    onApply: (filters: TaskFilters) => void;
+    initialFilters: TaskFilters;
+    projects: Project[];
 }

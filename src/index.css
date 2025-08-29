@@ -391,10 +391,6 @@ body.dark-theme input[type="date"]::-webkit-calendar-picker-indicator {
     border: none;
     transition: transform 0.1s ease, opacity 0.2s;
 }
-.btn .icon-wrapper {
-    width: 20px;
-    height: 20px;
-}
 .btn:active {
     transform: scale(0.98);
 }
@@ -1481,6 +1477,7 @@ input[type=number] { -moz-appearance: textfield; }
     overflow-wrap: break-word;
     hyphens: auto;
     max-width: 100%;
+    line-height: 1.4;
 }
 
 .task-list li button {
@@ -1742,7 +1739,7 @@ input[type=number] { -moz-appearance: textfield; }
     min-height: 28px;
 }
 
-.task-list li button .icon-wrapper svg {
+.task-list li button .icon-wrapper {
     width: 18px;
     height: 18px;
 }
@@ -1919,4 +1916,180 @@ input[type=number] { -moz-appearance: textfield; }
 .postpone-menu button:hover {
     background-color: var(--secondary-bg-color);
     color: var(--text-color);
+}
+
+.task-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.task-sort-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-sort-options label {
+    font-size: 14px;
+    color: var(--hint-color);
+    font-weight: 500;
+}
+
+.task-sort-options select {
+    flex-grow: 1;
+    max-width: 200px;
+    height: 38px;
+}
+
+.filter-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--hint-color);
+    padding: 4px;
+}
+
+.filter-btn .icon-wrapper {
+    width: 24px;
+    height: 24px;
+}
+
+.tool-detail-view {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--bg-color);
+}
+
+.tool-detail-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--secondary-bg-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--box-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.tool-detail-header h1 {
+    flex-grow: 1;
+    font-size: 20px;
+    margin: 0;
+    text-align: center;
+}
+
+.tool-detail-main {
+    flex-grow: 1;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.tool-detail-main .card {
+    margin-bottom: 16px;
+}
+
+.tool-detail-main label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: var(--hint-color);
+}
+
+.tool-detail-main input, .tool-detail-main select, .tool-detail-main textarea {
+    margin-bottom: 12px;
+}
+
+.movement-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.movement-item {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.movement-item .list-item-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.movement-item strong {
+    font-size: 16px;
+}
+
+.movement-item span {
+    font-size: 12px;
+    color: var(--hint-color);
+}
+
+.movement-item small {
+    font-size: 12px;
+    color: var(--hint-color);
+    white-space: pre-wrap;
+}
+
+.add-movement-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.add-movement-form input, .add-movement-form select, .add-movement-form textarea {
+    margin-bottom: 0;
+}
+
+.add-movement-form .btn {
+    margin-top: 10px;
+}
+
+.modal-footer {
+    padding: 16px;
+    background-color: var(--secondary-bg-color);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.modal-footer .btn {
+    width: 100%;
+}
+
+.add-consumable-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.add-consumable-form input[type="text"] {
+    grid-column: 1 / -1;
+}
+
+.add-consumable-form input[type="number"] {
+    max-width: 80px;
+}
+
+.add-consumable-form .btn {
+    grid-column: 1 / -1;
+    margin-top: 0;
 }
