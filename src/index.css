@@ -1843,6 +1843,10 @@ input[type=number] { -moz-appearance: textfield; }
     color: var(--danger-color);
 }
 
+.task-list .task-actions .settings-btn:hover {
+    color: var(--primary-color);
+}
+
 .task-list li button {
     background: none;
     border: none;
@@ -2221,10 +2225,19 @@ input[type=number] { -moz-appearance: textfield; }
     width: 100%;
 }
 
+.task-controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 .filter-btn {
-    align-self: flex-end;
-    font-size: 12px;
-    padding: 4px 8px;
+    font-size: 11px;
+    padding: 4px 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .task-main {
@@ -2255,21 +2268,25 @@ input[type=number] { -moz-appearance: textfield; }
 .sort-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 4px;
+    font-size: 11px;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .sort-controls label {
     color: var(--hint-color);
+    white-space: nowrap;
 }
 
 .sort-controls select {
-    font-size: 12px;
+    font-size: 11px;
     padding: 2px 4px;
     border-radius: 4px;
     border: 1px solid var(--border-color);
     background-color: var(--bg-color);
     color: var(--text-color);
+    min-width: 100px;
 }
 
 /* Task attachments */

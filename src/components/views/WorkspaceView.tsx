@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { WorkspaceViewProps, TaskFilter, Task } from '../../types';
-import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconEdit, IconCalendar } from '../common/Icon';
+import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconEdit, IconCalendar, IconSettings } from '../common/Icon';
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     tasks,
@@ -146,15 +146,17 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                 <button onClick={() => setTaskFilter('overdue')} className={taskFilter === 'overdue' ? 'active' : ''}>Просроченные</button>
                                 <button onClick={() => setTaskFilter('completed')} className={taskFilter === 'completed' ? 'active' : ''}>Выполненные</button>
                             </div>
-                            <div className="sort-controls">
-                                <label>Сортировка:</label>
-                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'priority' | 'project' | 'alphabet')}>
-                                    <option value="priority">По приоритету</option>
-                                    <option value="project">По проекту</option>
-                                    <option value="alphabet">По алфавиту</option>
-                                </select>
+                            <div className="task-controls-row">
+                                <div className="sort-controls">
+                                    <label>Сортировка:</label>
+                                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'priority' | 'project' | 'alphabet')}>
+                                        <option value="priority">По приоритету</option>
+                                        <option value="project">По проекту</option>
+                                        <option value="alphabet">По алфавиту</option>
+                                    </select>
+                                </div>
+                                <button onClick={onOpenFilterModal} className="btn btn-secondary filter-btn">Фильтр</button>
                             </div>
-                            <button onClick={onOpenFilterModal} className="btn btn-secondary filter-btn">Фильтр</button>
                         </div>
                     </div>
                     <div className="task-input-container">
@@ -180,7 +182,14 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                     </div>
                     <div className="task-list">
                         {Object.values(groupedTasks).every((arr: Task[]) => arr.length === 0) ? (
-                            <p className="empty-list-message">{taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}</p>
+                            <p className="empty-list-message">
+                                {taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}
+                                {process.env.NODE_ENV === 'development' && (
+                                    <small style={{display: 'block', marginTop: '8px', color: 'var(--hint-color)'}}>
+                                        Debug: Всего задач: {tasks.length}, Фильтр: {taskFilter}
+                                    </small>
+                                )}
+                            </p>
                         ) : (
                             Object.entries(groupedTasks).map(([group, tasks]: [string, Task[]]) => (
                                 tasks.length > 0 && (
@@ -197,7 +206,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                                             checked={task.completed} 
                                                             onChange={() => onToggleTask(task.id)}
                                                         />
-                                                        <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
+                                                        <div className="task-info">
                                                             <div className="task-main">
                                                                 {task.priority && (
                                                                     <div className={`priority-indicator priority-${task.priority}`}></div>
@@ -210,9 +219,9 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                                             </div>
                                                         </div>
                                                         <div className="task-actions">
-                                                            <button onClick={() => onPostponeTask(task.id, 1)} className="btn-icon postpone-btn"><IconCalendar /></button>
-                                                            <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon edit-btn"><IconEdit /></button>
-                                                            <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn"><IconTrash /></button>
+                                                            <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon settings-btn" title="Настройки задачи"><IconSettings /></button>
+                                                            <button onClick={() => onPostponeTask(task.id, 1)} className="btn-icon postpone-btn" title="Перенести на завтра"><IconCalendar /></button>
+                                                            <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn" title="Удалить"><IconTrash /></button>
                                                         </div>
                                                     </li>
                                                 );
