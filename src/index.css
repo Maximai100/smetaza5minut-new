@@ -1080,36 +1080,45 @@ body.dark-theme .bottom-nav {
 
 /* Inventory specific styles */
 .inventory-list .list-item {
-    min-height: auto;
-    padding: 8px 12px;
+    min-height: auto !important;
+    padding: 8px 12px !important;
+    height: auto !important;
 }
 
 .inventory-list .list-item-info {
-    min-height: auto;
-    gap: 2px;
+    min-height: auto !important;
+    gap: 2px !important;
+    height: auto !important;
 }
 
 .inventory-list .list-item-info strong {
-    line-height: 1.2;
-    min-height: auto;
+    line-height: 1.2 !important;
+    min-height: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .inventory-list .list-item-actions {
-    flex-direction: column;
-    gap: 4px;
-    align-items: flex-end;
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: flex-end !important;
+    height: auto !important;
+    min-height: auto !important;
 }
 
 .inventory-list .list-item-actions select {
-    font-size: 12px;
-    padding: 4px 6px;
-    min-width: 80px;
+    font-size: 12px !important;
+    padding: 4px 6px !important;
+    min-width: 80px !important;
+    height: auto !important;
 }
 
 .inventory-list .list-item-actions .btn {
-    padding: 6px;
-    min-width: 32px;
-    min-height: 32px;
+    padding: 6px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    height: 32px !important;
 }
 
 /* Notes styles */
@@ -1142,8 +1151,27 @@ body.dark-theme .bottom-nav {
 }
 
 .add-note-form textarea {
-    min-height: 60px;
-    max-height: 120px;
+    min-height: 60px !important;
+    max-height: 120px !important;
+    height: 60px !important;
+    padding: 8px !important;
+}
+
+.note-item .list-item-info {
+    background-color: var(--bg-color);
+    padding: 8px 12px !important;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    min-height: auto !important;
+    height: auto !important;
+}
+
+.note-content {
+    margin: 0 !important;
+    white-space: pre-wrap; /* Preserves line breaks */
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+    padding: 0 !important;
 }
 
 /* Act Generation Modal Styles */
