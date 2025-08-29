@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { 
     TelegramWebApp, Item, LibraryItem, CompanyProfile, EstimateStatus, ThemeMode, Estimate, Project, FinanceEntry, 
-    PhotoReport, Document, WorkStage, Note, InventoryItem, InventoryNote, Task, SettingsModalProps, EstimatesListModalProps, LibraryModalProps, 
+    PhotoReport, Document, WorkStage, Note, InventoryItem, InventoryNote, Task, ConsumableItem, SettingsModalProps, EstimatesListModalProps, LibraryModalProps, 
     NewProjectModalProps, FinanceEntryModalProps, PhotoReportModalProps, PhotoViewerModalProps, ShoppingListModalProps, 
     DocumentUploadModalProps, WorkStageModalProps, NoteModalProps, ActGenerationModalProps, AISuggestModalProps, 
     EstimateViewProps, ProjectsListViewProps, ProjectDetailViewProps, InventoryViewProps, AddToolModalProps, ReportsViewProps, 
@@ -54,6 +54,7 @@ const App: React.FC = () => {
     const [companyProfile, setCompanyProfile] = useState<CompanyProfile>({ name: '', details: '', logo: null });
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
     const [inventoryNotes, setInventoryNotes] = useState<InventoryNote[]>([]);
+    const [consumables, setConsumables] = useState<ConsumableItem[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
     const [taskAdvancedFilters, setTaskAdvancedFilters] = useState<TaskFilters>({ project: null, executor: '', tags: '' });
@@ -996,6 +997,25 @@ const App: React.FC = () => {
         const updatedNotes = [newNote, ...inventoryNotes];
         setInventoryNotes(updatedNotes);
         localStorage.setItem('inventoryNotes', JSON.stringify(updatedNotes));
+    };
+
+    const handleAddConsumable = (consumable: Omit<ConsumableItem, 'id'>) => {
+        const newItem: ConsumableItem = { ...consumable, id: Date.now() };
+        const updatedConsumables = [newItem, ...consumables];
+        setConsumables(updatedConsumables);
+        localStorage.setItem('consumables', JSON.stringify(updatedConsumables));
+    };
+
+    const handleUpdateConsumable = (consumable: ConsumableItem) => {
+        const updatedConsumables = consumables.map(c => c.id === consumable.id ? consumable : c);
+        setConsumables(updatedConsumables);
+        localStorage.setItem('consumables', JSON.stringify(updatedConsumables));
+    };
+
+    const handleDeleteConsumable = (id: number) => {
+        const updatedConsumables = consumables.filter(c => c.id !== id);
+        setConsumables(updatedConsumables);
+        localStorage.setItem('consumables', JSON.stringify(updatedConsumables));
     };
 
     const handleDeleteInventoryNote = (id: number) => {
