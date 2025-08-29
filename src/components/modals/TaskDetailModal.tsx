@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Task, Project, Subtask, TaskDetailModalProps } from '../../types';
-import { IconClose, IconTrash, IconPlus } from '../common/Icon';
+import { IconClose, IconTrash, IconPlus, IconPaperclip } from '../common/Icon';
+import { readFileAsDataURL } from '../../utils';
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects, onClose, onSave, onDelete, showAlert, onInputFocus }) => {
     const [currentTask, setCurrentTask] = useState<Task>(task || {
@@ -59,6 +60,32 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects
         setCurrentTask(prev => ({
             ...prev,
             subtasks: (prev.subtasks || []).filter(sub => sub.id !== id),
+        }));
+    };
+
+    const handleFileAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        try {
+            const attachments = [...(currentTask.attachments || [])];
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const dataUrl = await readFileAsDataURL(file);
+                attachments.push(dataUrl);
+            }
+            
+            setCurrentTask(prev => ({ ...prev, attachments }));
+        } catch (error) {
+            showAlert('Ошибка при прикреплении файла');
+        }
+    };
+
+    const handleDeleteAttachment = (index: number) => {
+        setCurrentTask(prev => ({
+            ...prev,
+            attachments: (prev.attachments || []).filter((_, i) => i !== index),
         }));
     };
 
@@ -190,6 +217,39 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects
                             placeholder="Добавить комментарий..."
                             rows={3}
                         />
+                    </div>
+
+                    {/* File Attachments */}
+                    <div className="attachments-section">
+                        <h3>Прикрепленные файлы</h3>
+                        <div className="attachment-input">
+                            <input
+                                type="file"
+                                id="file-upload"
+                                multiple
+                                onChange={handleFileAttach}
+                                style={{ display: 'none' }}
+                                accept="image/*,.pdf,.doc,.docx,.txt"
+                            />
+                            <label htmlFor="file-upload" className="btn btn-secondary">
+                                <IconPaperclip /> Прикрепить файлы
+                            </label>
+                        </div>
+                        {(currentTask.attachments || []).length > 0 && (
+                            <div className="attachments-list">
+                                {(currentTask.attachments || []).map((attachment, index) => (
+                                    <div key={index} className="attachment-item">
+                                        <span>Файл {index + 1}</span>
+                                        <button 
+                                            onClick={() => handleDeleteAttachment(index)}
+                                            className="btn btn-tertiary"
+                                        >
+                                            <IconTrash />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                 </div>

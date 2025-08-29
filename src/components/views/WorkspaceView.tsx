@@ -9,17 +9,20 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     projects,
     taskFilter,
     setTaskFilter,
+    taskAdvancedFilters,
     onAddTask,
     onToggleTask,
     onDeleteTask,
     onPostponeTask,
     onOpenTaskDetailModal,
+    onOpenFilterModal,
     onScratchpadChange,
     onOpenGlobalDocumentModal,
     onDeleteGlobalDocument,
     onOpenScratchpad,
 }) => {
     const [newTaskText, setNewTaskText] = useState('');
+    const [sortBy, setSortBy] = useState<'priority' | 'project' | 'alphabet'>('priority');
 
     const handleAddTask = () => {
         if (newTaskText.trim()) {
@@ -104,8 +107,26 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             }
         });
 
+        // Сортировка внутри каждой группы
+        Object.keys(groups).forEach(groupKey => {
+            groups[groupKey].sort((a, b) => {
+                if (sortBy === 'priority') {
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    const aPriority = priorityOrder[a.priority || 'medium'];
+                    const bPriority = priorityOrder[b.priority || 'medium'];
+                    return bPriority - aPriority; // Высокий приоритет первым
+                } else if (sortBy === 'project') {
+                    const aProject = a.projectId ? projects.find(p => p.id === a.projectId)?.name || '' : '';
+                    const bProject = b.projectId ? projects.find(p => p.id === b.projectId)?.name || '' : '';
+                    return aProject.localeCompare(bProject);
+                } else { // alphabet
+                    return a.text.localeCompare(b.text);
+                }
+            });
+        });
+
         return groups;
-    }, [tasks, taskFilter]);
+    }, [tasks, taskFilter, sortBy, projects]);
 
     return (
         <>
@@ -117,12 +138,23 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                 <div className="card">
                     <div className="card-header">
                         <h2>Мои задачи</h2>
-                        <div className="task-filters">
-                            <button onClick={() => setTaskFilter('all')} className={taskFilter === 'all' ? 'active' : ''}>Все</button>
-                            <button onClick={() => setTaskFilter('today')} className={taskFilter === 'today' ? 'active' : ''}>Сегодня</button>
-                            <button onClick={() => setTaskFilter('week')} className={taskFilter === 'week' ? 'active' : ''}>Неделя</button>
-                            <button onClick={() => setTaskFilter('overdue')} className={taskFilter === 'overdue' ? 'active' : ''}>Просроченные</button>
-                            <button onClick={() => setTaskFilter('completed')} className={taskFilter === 'completed' ? 'active' : ''}>Выполненные</button>
+                        <div className="task-header-actions">
+                            <div className="task-filters">
+                                <button onClick={() => setTaskFilter('all')} className={taskFilter === 'all' ? 'active' : ''}>Все</button>
+                                <button onClick={() => setTaskFilter('today')} className={taskFilter === 'today' ? 'active' : ''}>Сегодня</button>
+                                <button onClick={() => setTaskFilter('week')} className={taskFilter === 'week' ? 'active' : ''}>Неделя</button>
+                                <button onClick={() => setTaskFilter('overdue')} className={taskFilter === 'overdue' ? 'active' : ''}>Просроченные</button>
+                                <button onClick={() => setTaskFilter('completed')} className={taskFilter === 'completed' ? 'active' : ''}>Выполненные</button>
+                            </div>
+                            <div className="sort-controls">
+                                <label>Сортировка:</label>
+                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'priority' | 'project' | 'alphabet')}>
+                                    <option value="priority">По приоритету</option>
+                                    <option value="project">По проекту</option>
+                                    <option value="alphabet">По алфавиту</option>
+                                </select>
+                            </div>
+                            <button onClick={onOpenFilterModal} className="btn btn-secondary filter-btn">Фильтр</button>
                         </div>
                     </div>
                     <div className="task-input-container">
@@ -166,7 +198,12 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                                             onChange={() => onToggleTask(task.id)}
                                                         />
                                                         <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
-                                                            <span>{task.text}</span>
+                                                            <div className="task-main">
+                                                                {task.priority && (
+                                                                    <div className={`priority-indicator priority-${task.priority}`}></div>
+                                                                )}
+                                                                <span>{task.text}</span>
+                                                            </div>
                                                             <div className="task-meta">
                                                                 {project && <span className="task-project">{project.name}</span>}
                                                                 {task.dueDate && <span className="task-due-date">{new Date(task.dueDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</span>}

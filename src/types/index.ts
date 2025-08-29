@@ -427,6 +427,7 @@ export interface Task {
     comments?: string;
     subtasks?: Subtask[];
     tags?: string[];
+    attachments?: string[]; // Array of base64 data URLs
 }
 
 export interface TaskFilters {
