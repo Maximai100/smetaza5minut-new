@@ -168,22 +168,62 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects
                         </ul>
                     </div>
 
-                    {/* Attachments (Placeholder) */}
+                    {/* Attachments */}
                     <div className="attachments-section">
                         <h3>Прикрепленные файлы</h3>
-                        <p className="empty-list-message">Функционал прикрепления файлов будет реализован позже.</p>
+                        <input
+                            type="file"
+                            onChange={async (e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                        if (event.target && typeof event.target.result === 'string') {
+                                            const newAttachment: Attachment = {
+                                                id: Date.now(),
+                                                name: file.name,
+                                                dataUrl: event.target.result,
+                                                type: file.type,
+                                            };
+                                            handleTaskChange('attachments', [...(currentTask.attachments || []), newAttachment]);
+                                        }
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }}
+                        />
+                        <ul className="attachment-list">
+                            {(currentTask.attachments || []).map(att => (
+                                <li key={att.id}>
+                                    <span>{att.name}</span>
+                                    <button onClick={() => handleTaskChange('attachments', (currentTask.attachments || []).filter(a => a.id !== att.id))}><IconClose /></button>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
 
-                    {/* Tags (Placeholder) */}
+                    {/* Tags */}
                     <div className="tags-section">
                         <h3>Метки/Теги</h3>
-                        <p className="empty-list-message">Функционал меток будет реализован позже.</p>
+                        <input
+                            type="text"
+                            value={(currentTask.tags || []).join(', ')}
+                            onChange={(e) => handleTaskChange('tags', e.target.value.split(',').map(t => t.trim()))}
+                            onFocus={onInputFocus}
+                            placeholder="#электрика, #сантехника, #закупка"
+                        />
                     </div>
 
-                    {/* Comments (Placeholder) */}
+                    {/* Comments */}
                     <div className="comments-section">
                         <h3>Комментарии</h3>
-                        <p className="empty-list-message">Функционал комментариев будет реализован позже.</p>
+                        <textarea
+                            value={currentTask.comments || ''}
+                            onChange={(e) => handleTaskChange('comments', e.target.value)}
+                            onFocus={onInputFocus}
+                            placeholder="Добавить комментарий..."
+                            rows={3}
+                        />
                     </div>
 
                 </div>

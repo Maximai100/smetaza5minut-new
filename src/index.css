@@ -1706,6 +1706,28 @@ input[type=number] { -moz-appearance: textfield; }
     background-color: var(--tg-theme-destructive-bg-color);
 }
 
+.task-list .task-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.task-list .task-actions .btn-icon {
+    padding: 6px;
+}
+
+.task-list .task-actions .postpone-btn:hover {
+    color: var(--success-color);
+}
+
+.task-list .task-actions .edit-btn:hover {
+    color: var(--link-color);
+}
+
+.task-list .task-actions .delete-btn:hover {
+    color: var(--danger-color);
+}
+
 .task-list li button {
     background: none;
     border: none;
@@ -1831,4 +1853,37 @@ input[type=number] { -moz-appearance: textfield; }
 .subtask-list li button .icon-wrapper svg {
     width: 18px;
     height: 18px;
+}
+
+.task-group {
+    margin-bottom: 20px;
+}
+
+.task-group h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--hint-color);
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.priority-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.priority-high {
+    background-color: var(--danger-color);
+}
+
+.priority-medium {
+    background-color: #ff9f0a;
+}
+
+.priority-low {
+    background-color: var(--success-color);
 }

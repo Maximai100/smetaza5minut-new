@@ -1031,6 +1031,19 @@ const App: React.FC = () => {
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     };
 
+    const handlePostponeTask = (id: number) => {
+        const updatedTasks = tasks.map(t => {
+            if (t.id === id) {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return { ...t, dueDate: tomorrow.toISOString().split('T')[0] };
+            }
+            return t;
+        });
+        setTasks(updatedTasks);
+        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    };
+
     const handleAddScratchpadItem = (text: string) => {
         const newItem = { id: Date.now(), text, completed: false };
         const updatedItems = [...scratchpadItems, newItem];
@@ -1131,34 +1144,7 @@ const App: React.FC = () => {
         openModal(setIsActModalOpen, 'act');
     };
 
-    const filteredTasks = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of current week (Sunday)
-
-        return tasks.filter(task => {
-            if (taskFilter === 'all') return true;
-            if (taskFilter === 'completed') return task.completed;
-            if (task.completed) return false; // Don't show completed tasks in other filters
-
-            const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
-            if (!taskDueDate) return false; // Tasks without due date are not filtered by date
-
-            taskDueDate.setHours(0, 0, 0, 0);
-
-            if (taskFilter === 'today') {
-                return taskDueDate.getTime() === today.getTime();
-            }
-            if (taskFilter === 'week') {
-                return taskDueDate.getTime() >= today.getTime() && taskDueDate.getTime() <= endOfWeek.getTime();
-            }
-            if (taskFilter === 'overdue') {
-                return taskDueDate.getTime() < today.getTime();
-            }
-            return true;
-        });
-    }, [tasks, taskFilter]);
+    
 
     const themeIcon = useCallback(() => {
         return themeMode === 'light' ? <IconSun /> : <IconMoon />;
@@ -1168,7 +1154,7 @@ const App: React.FC = () => {
         switch (activeView) {
             case 'workspace':
                 return <WorkspaceView 
-                    tasks={filteredTasks}
+                    tasks={tasks}
                     scratchpadItems={scratchpadItems}
                     globalDocuments={globalDocuments}
                     projects={projects}
@@ -1177,6 +1163,7 @@ const App: React.FC = () => {
                     onAddTask={handleAddTask}
                     onToggleTask={handleToggleTask}
                     onDeleteTask={handleDeleteTask}
+                    onPostponeTask={handlePostponeTask}
                     onOpenTaskDetailModal={handleOpenTaskDetailModal}
                     onAddScratchpadItem={handleAddScratchpadItem}
                     onToggleScratchpadItem={handleToggleScratchpadItem}

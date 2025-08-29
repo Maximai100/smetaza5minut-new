@@ -345,58 +345,31 @@ export interface ReportsViewProps {
     financeEntries: FinanceEntry[];
 }
 
-export type NoteOrTaskFilter = 'all' | 'notes' | 'tasks' | 'today' | 'week' | 'overdue' | 'completed';
-
-export interface Subtask {
-    id: number;
-    text: string;
-    completed: boolean;
-}
-
-export interface Attachment {
-    id: number;
-    name: string;
-    dataUrl: string; // Base64 encoded file
-    type: string; // MIME type
-}
-
-export interface NoteOrTaskItem {
-    id: number;
-    text: string;
-    type: 'note' | 'task'; // 'note' for scratchpad items, 'task' for tasks
-    completed?: boolean; // Only for tasks
-    dueDate?: string; // YYYY-MM-DD, only for tasks
-    projectId?: number; // ID проекта, к которому привязана задача, only for tasks
-    executor?: string; // Исполнитель задачи, only for tasks
-    priority?: 'low' | 'medium' | 'high'; // Приоритет задачи, only for tasks
-    description?: string; // Описание задачи, only for tasks
-    comments?: string; // Комментарии к задаче, only for tasks
-    subtasks?: Subtask[]; // Чек-лист подзадач, only for tasks
-    attachments?: Attachment[]; // Прикрепленные файлы, only for tasks
-    tags?: string[]; // Метки/теги, only for tasks
-}
-
 export interface WorkspaceViewProps {
-    noteOrTaskItems: NoteOrTaskItem[];
+    tasks: Task[];
+    scratchpadItems: ScratchpadItem[];
     globalDocuments: Document[];
-    projects: Project[]; // Добавляем проекты для отображения названия проекта в задаче
-    noteOrTaskFilter: NoteOrTaskFilter;
-    setNoteOrTaskFilter: React.Dispatch<React.SetStateAction<NoteOrTaskFilter>>;
-    onAddNoteOrTaskItem: (text: string, type: 'note' | 'task') => void;
-    onToggleNoteOrTaskItemCompleted: (id: number) => void;
-    onDeleteNoteOrTaskItem: (id: number) => void;
-    onOpenNoteOrTaskDetailModal: (item: NoteOrTaskItem | null) => void; // Для открытия модального окна деталей
-    onConvertNoteToTask: (id: number) => void; // Для конвертации заметки в задачу
+    projects: Project[];
+    taskFilter: TaskFilter;
+    setTaskFilter: React.Dispatch<React.SetStateAction<TaskFilter>>;
+    onAddTask: (text: string) => void;
+    onToggleTask: (id: number) => void;
+    onDeleteTask: (id: number) => void;
+    onPostponeTask: (id: number) => void;
+    onOpenTaskDetailModal: (task: Task | null) => void;
+    onAddScratchpadItem: (text: string) => void;
+    onToggleScratchpadItem: (id: number) => void;
+    onDeleteScratchpadItem: (id: number) => void;
     onOpenGlobalDocumentModal: () => void;
     onDeleteGlobalDocument: (id: number) => void;
-    onOpenScratchpad: () => void; // This will now open the full screen scratchpad, which is still text-based
+    onOpenScratchpad: () => void;
 }
 
 export interface TaskDetailModalProps {
-    item: NoteOrTaskItem | null; // Теперь принимает NoteOrTaskItem
+    task: Task | null;
     projects: Project[];
     onClose: () => void;
-    onSave: (item: NoteOrTaskItem) => void;
+    onSave: (task: Task) => void;
     onDelete: (id: number) => void;
     showAlert: (message: string) => void;
     onInputFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;

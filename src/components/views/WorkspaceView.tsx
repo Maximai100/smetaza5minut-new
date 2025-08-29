@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { WorkspaceViewProps, TaskFilter } from '../../types';
-import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconClose, IconEdit } from '../common/Icon';
+import React, { useState, useMemo } from 'react';
+import { WorkspaceViewProps, TaskFilter, Task } from '../../types';
+import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconClose, IconEdit, IconCalendar } from '../common/Icon';
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     tasks,
@@ -12,6 +12,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     onAddTask,
     onToggleTask,
     onDeleteTask,
+    onPostponeTask,
     onOpenTaskDetailModal,
     onAddScratchpadItem,
     onToggleScratchpadItem,
@@ -36,6 +37,82 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             setNewScratchpadItemText('');
         }
     };
+
+    const groupedTasks = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (7 - today.getDay()));
+
+        const filteredTasks = tasks.filter(task => {
+            if (taskFilter === 'completed') {
+                return task.completed;
+            }
+            if (task.completed) {
+                return false; // Hide completed tasks from non-completed filters
+            }
+            if (taskFilter === 'all') {
+                return true;
+            }
+
+            const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+            if (!dueDate) return taskFilter === 'all'; // Show tasks without due date only in 'all' filter
+            dueDate.setHours(0, 0, 0, 0);
+
+            if (taskFilter === 'today') {
+                return dueDate.getTime() === today.getTime();
+            }
+            if (taskFilter === 'week') {
+                return dueDate.getTime() >= today.getTime() && dueDate.getTime() <= endOfWeek.getTime();
+            }
+            if (taskFilter === 'overdue') {
+                return dueDate.getTime() < today.getTime();
+            }
+
+            return true; // Should not be reached if filter is one of the above
+        });
+
+        if (taskFilter === 'completed') {
+            return { 'Выполненные': filteredTasks };
+        }
+
+        const groups: { [key: string]: Task[] } = {
+            'Просроченные': [],
+            'Сегодня': [],
+            'Завтра': [],
+            'На этой неделе': [],
+            'Предстоящие': [],
+            'Без срока': [],
+        };
+
+        filteredTasks.forEach(task => {
+            if (!task.dueDate) {
+                groups['Без срока'].push(task);
+                return;
+            }
+
+            const dueDate = new Date(task.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+
+            if (dueDate.getTime() < today.getTime()) {
+                groups['Просроченные'].push(task);
+            } else if (dueDate.getTime() === today.getTime()) {
+                groups['Сегодня'].push(task);
+            } else if (dueDate.getTime() === tomorrow.getTime()) {
+                groups['Завтра'].push(task);
+            } else if (dueDate.getTime() <= endOfWeek.getTime()) {
+                groups['На этой неделе'].push(task);
+            } else {
+                groups['Предстоящие'].push(task);
+            }
+        });
+
+        return groups;
+    }, [tasks, taskFilter]);
 
     return (
         <>
@@ -76,49 +153,47 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                         />
                         <button onClick={handleAddTask} className="add-task-btn"><IconPlus/></button>
                     </div>
-                    <ul className="task-list">
-                        {tasks.length === 0 ? (
+                    <div className="task-list">
+                        {Object.values(groupedTasks).every(arr => arr.length === 0) ? (
                             <p className="empty-list-message">{taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}</p>
                         ) : (
-                            tasks.map(task => {
-                                const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
-                                taskDueDate?.setHours(0, 0, 0, 0);
+                            Object.entries(groupedTasks).map(([group, tasks]) => (
+                                tasks.length > 0 && (
+                                    <div key={group} className="task-group">
+                                        <h3>{group}</h3>
+                                        <ul>
+                                            {tasks.map(task => {
+                                                const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
+                                                const priorityClass = `priority-${task.priority || 'medium'}`;
 
-                                let dueDateText = '';
-                                if (taskDueDate) {
-                                    if (taskDueDate.getTime() === today.getTime()) {
-                                        dueDateText = 'Сегодня';
-                                    } else if (taskDueDate.getTime() < today.getTime()) {
-                                        dueDateText = 'Просрочено';
-                                    } else {
-                                        dueDateText = taskDueDate.toLocaleDateString('ru-RU');
-                                    }
-                                }
-
-                                return (
-                                    <li key={task.id} className={task.completed ? 'completed' : ''}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={task.completed} 
-                                            onChange={() => onToggleTask(task.id)}
-                                        />
-                                        <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
-                                            <span>{task.text}</span>
-                                            <div className="task-meta">
-                                                {project && <span className="task-project">{project.name}</span>}
-                                                {dueDateText && <span className={`task-due-date ${dueDateText === 'Просрочено' ? 'overdue' : ''}`}>{dueDateText}</span>}
-                                            </div>
-                                        </div>
-                                        <button onClick={() => onOpenTaskDetailModal(task)}><IconEdit /></button>
-                                        <button onClick={() => onDeleteTask(task.id)}><IconTrash /></button>
-                                    </li>
-                                );
-                            })
+                                                return (
+                                                    <li key={task.id} className={task.completed ? 'completed' : ''}>
+                                                        <span className={`priority-indicator ${priorityClass}`}></span>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={task.completed} 
+                                                            onChange={() => onToggleTask(task.id)}
+                                                        />
+                                                        <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
+                                                            <span>{task.text}</span>
+                                                            <div className="task-meta">
+                                                                {project && <span className="task-project">{project.name}</span>}
+                                                            </div>
+                                                        </div>
+                                                        <div className="task-actions">
+                                                            <button onClick={() => onPostponeTask(task.id)} className="btn-icon postpone-btn"><IconCalendar /></button>
+                                                            <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon edit-btn"><IconEdit /></button>
+                                                            <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn"><IconTrash /></button>
+                                                        </div>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </div>
+                                )
+                            ))
                         )}
-                    </ul>
+                    </div>
                 </div>
 
                 {/* Scratchpad */}
