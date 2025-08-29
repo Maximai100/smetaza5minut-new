@@ -345,7 +345,7 @@ export interface ReportsViewProps {
     financeEntries: FinanceEntry[];
 }
 
-export type TaskFilter = 'all' | 'today' | 'week' | 'overdue' | 'completed';
+export type NoteOrTaskFilter = 'all' | 'notes' | 'tasks' | 'today' | 'week' | 'overdue' | 'completed';
 
 export interface Subtask {
     id: number;
@@ -360,51 +360,43 @@ export interface Attachment {
     type: string; // MIME type
 }
 
-export interface Task {
-  id: number;
-  text: string;
-  completed: boolean;
-  dueDate?: string; // YYYY-MM-DD
-  projectId?: number; // ID проекта, к которому привязана задача
-  executor?: string; // Исполнитель задачи
-  priority?: 'low' | 'medium' | 'high'; // Приоритет задачи
-  description?: string; // Описание задачи
-  comments?: string; // Комментарии к задаче
-  subtasks?: Subtask[]; // Чек-лист подзадач
-  attachments?: Attachment[]; // Прикрепленные файлы
-  tags?: string[]; // Метки/теги
-}
-
-export interface ScratchpadItem {
+export interface NoteOrTaskItem {
     id: number;
     text: string;
-    completed: boolean;
+    type: 'note' | 'task'; // 'note' for scratchpad items, 'task' for tasks
+    completed?: boolean; // Only for tasks
+    dueDate?: string; // YYYY-MM-DD, only for tasks
+    projectId?: number; // ID проекта, к которому привязана задача, only for tasks
+    executor?: string; // Исполнитель задачи, only for tasks
+    priority?: 'low' | 'medium' | 'high'; // Приоритет задачи, only for tasks
+    description?: string; // Описание задачи, only for tasks
+    comments?: string; // Комментарии к задаче, only for tasks
+    subtasks?: Subtask[]; // Чек-лист подзадач, only for tasks
+    attachments?: Attachment[]; // Прикрепленные файлы, only for tasks
+    tags?: string[]; // Метки/теги, only for tasks
 }
 
 export interface WorkspaceViewProps {
-    tasks: Task[];
-    scratchpadItems: ScratchpadItem[];
+    noteOrTaskItems: NoteOrTaskItem[];
     globalDocuments: Document[];
     projects: Project[]; // Добавляем проекты для отображения названия проекта в задаче
-    taskFilter: TaskFilter;
-    setTaskFilter: React.Dispatch<React.SetStateAction<TaskFilter>>;
-    onAddTask: (text: string) => void;
-    onToggleTask: (id: number) => void;
-    onDeleteTask: (id: number) => void;
-    onOpenTaskDetailModal: (task: Task | null) => void; // Добавляем пропс для открытия модального окна деталей задачи
-    onAddScratchpadItem: (text: string) => void;
-    onToggleScratchpadItem: (id: number) => void;
-    onDeleteScratchpadItem: (id: number) => void;
+    noteOrTaskFilter: NoteOrTaskFilter;
+    setNoteOrTaskFilter: React.Dispatch<React.SetStateAction<NoteOrTaskFilter>>;
+    onAddNoteOrTaskItem: (text: string, type: 'note' | 'task') => void;
+    onToggleNoteOrTaskItemCompleted: (id: number) => void;
+    onDeleteNoteOrTaskItem: (id: number) => void;
+    onOpenNoteOrTaskDetailModal: (item: NoteOrTaskItem | null) => void; // Для открытия модального окна деталей
+    onConvertNoteToTask: (id: number) => void; // Для конвертации заметки в задачу
     onOpenGlobalDocumentModal: () => void;
     onDeleteGlobalDocument: (id: number) => void;
-    onOpenScratchpad: () => void;
+    onOpenScratchpad: () => void; // This will now open the full screen scratchpad, which is still text-based
 }
 
 export interface TaskDetailModalProps {
-    task: Task | null;
+    item: NoteOrTaskItem | null; // Теперь принимает NoteOrTaskItem
     projects: Project[];
     onClose: () => void;
-    onSave: (task: Task) => void;
+    onSave: (item: NoteOrTaskItem) => void;
     onDelete: (id: number) => void;
     showAlert: (message: string) => void;
     onInputFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
