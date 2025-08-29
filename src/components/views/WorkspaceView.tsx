@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { WorkspaceViewProps, TaskFilter, Task } from '../../types';
-import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconClose, IconEdit, IconCalendar } from '../common/Icon';
+import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconEdit, IconCalendar } from '../common/Icon';
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     tasks,
@@ -20,39 +20,6 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     onOpenScratchpad,
 }) => {
     const [newTaskText, setNewTaskText] = useState('');
-    const [openPostponeMenu, setOpenPostponeMenu] = useState<number | null>(null);
-
-    const handleAddTask = () => {
-        if (newTaskText.trim()) {
-            onAddTask(newTaskText.trim());
-            setNewTaskText('');
-        }
-    };
-
-    import React, { useState, useMemo } from 'react';
-import { WorkspaceViewProps, TaskFilter, Task } from '../../types';
-import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconClose, IconEdit, IconCalendar } from '../common/Icon';
-
-export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
-    tasks,
-    scratchpad,
-    globalDocuments,
-    projects,
-    taskFilter,
-    setTaskFilter,
-    onAddTask,
-    onToggleTask,
-    onDeleteTask,
-    onPostponeTask,
-    onOpenTaskDetailModal,
-    onScratchpadChange,
-    onOpenGlobalDocumentModal,
-    onDeleteGlobalDocument,
-    onOpenScratchpad,
-}) => {
-    const [newTaskText, setNewTaskText] = useState('');
-    const [openPostponeMenu, setOpenPostponeMenu] = useState<number | null>(null);
-    const [sortOrder, setSortOrder] = useState<'priority' | 'project' | 'alphabetical'>('priority');
 
     const handleAddTask = () => {
         if (newTaskText.trim()) {
@@ -99,25 +66,8 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             return true; // Should not be reached if filter is one of the above
         });
 
-        const priorityMap = { high: 1, medium: 2, low: 3 };
-
-        const sortedTasks = [...filteredTasks].sort((a, b) => {
-            switch (sortOrder) {
-                case 'priority':
-                    return (priorityMap[a.priority || 'medium'] || 3) - (priorityMap[b.priority || 'medium'] || 3);
-                case 'project':
-                    const projectA = a.projectId ? projects.find(p => p.id === a.projectId)?.name || '' : 'zzzz';
-                    const projectB = b.projectId ? projects.find(p => p.id === b.projectId)?.name || '' : 'zzzz';
-                    return projectA.localeCompare(projectB);
-                case 'alphabetical':
-                    return a.text.localeCompare(b.text);
-                default:
-                    return 0;
-            }
-        });
-
         if (taskFilter === 'completed') {
-            return { 'Выполненные': sortedTasks };
+            return { 'Выполненные': filteredTasks };
         }
 
         const groups: { [key: string]: Task[] } = {
@@ -129,7 +79,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             'Без срока': [],
         };
 
-        sortedTasks.forEach(task => {
+        filteredTasks.forEach(task => {
             if (!task.dueDate) {
                 groups['Без срока'].push(task);
                 return;
@@ -152,162 +102,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         });
 
         return groups;
-    }, [tasks, taskFilter, sortOrder, projects]);
-
-    return (
-        <>
-            <header className="workspace-header">
-                <h1>Рабочий стол</h1>
-            </header>
-            <main className="workspace-container">
-                {/* Tasks */}
-                <div className="card">
-                    <div className="card-header">
-                        <h2>Мои задачи</h2>
-                        <div className="task-filters">
-                            <button onClick={() => setTaskFilter('all')} className={taskFilter === 'all' ? 'active' : ''}>Все</button>
-                            <button onClick={() => setTaskFilter('today')} className={taskFilter === 'today' ? 'active' : ''}>Сегодня</button>
-                            <button onClick={() => setTaskFilter('week')} className={taskFilter === 'week' ? 'active' : ''}>Неделя</button>
-                            <button onClick={() => setTaskFilter('overdue')} className={taskFilter === 'overdue' ? 'active' : ''}>Просроченные</button>
-                            <button onClick={() => setTaskFilter('completed')} className={taskFilter === 'completed' ? 'active' : ''}>Выполненные</button>
-                        </div>
-                    </div>
-                    <div className="task-controls">
-                        <div className="task-input-container">
-                            <textarea 
-                                value={newTaskText} 
-                                onChange={(e) => setNewTaskText(e.target.value)} 
-                                placeholder="Добавить новую задачу..." 
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleAddTask();
-                                    }
-                                }}
-                                rows={1}
-                                style={{ overflowY: 'hidden', resize: 'none', minHeight: '24px' }}
-                                onInput={(e) => {
-                                    const target = e.target as HTMLTextAreaElement;
-                                    target.style.height = 'auto';
-                                    target.style.height = `${target.scrollHeight}px`;
-                                }}
-                            />
-                            <button onClick={handleAddTask} className="add-task-btn"><IconPlus/></button>
-                        </div>
-                        <div className="task-sort-options">
-                            <label>Сортировать по:</label>
-                            <select value={sortOrder} onChange={e => setSortOrder(e.target.value as any)}>
-                                <option value="priority">Приоритету</option>
-                                <option value="project">Проекту</option>
-                                <option value="alphabetical">Алфавиту</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div className="task-list">
-                        {Object.values(groupedTasks).every(arr => arr.length === 0) ? (
-                            <p className="empty-list-message">{taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}</p>
-                        ) : (
-                            Object.entries(groupedTasks).map(([group, tasks]) => (
-                                tasks.length > 0 && (
-                                    <div key={group} className="task-group">
-                                        <h3>{group}</h3>
-                                        <ul>
-                                            {tasks.map(task => {
-                                                const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
-                                                const priorityClass = `priority-${task.priority || 'medium'}`;
-
-                                                return (
-                                                    <li key={task.id} className={task.completed ? 'completed' : ''}>
-                                                        <span className={`priority-indicator ${priorityClass}`}></span>
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={task.completed} 
-                                                            onChange={() => onToggleTask(task.id)}
-                                                        />
-                                                        <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
-                                                            <span>{task.text}</span>
-                                                            <div className="task-meta">
-                                                                {project && <span className="task-project">{project.name}</span>}
-                                                                {task.dueDate && <span className="task-due-date">{new Date(task.dueDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="task-actions">
-                                                            <div className="postpone-container">
-                                                                <button onClick={() => setOpenPostponeMenu(openPostponeMenu === task.id ? null : task.id)} className="btn-icon postpone-btn"><IconCalendar /></button>
-                                                                {openPostponeMenu === task.id && (
-                                                                    <div className="postpone-menu">
-                                                                        <button onClick={() => { onPostponeTask(task.id, 1); setOpenPostponeMenu(null); }}>На завтра</button>
-                                                                        <button onClick={() => { onPostponeTask(task.id, 3); setOpenPostponeMenu(null); }}>На 3 дня</button>
-                                                                        <button onClick={() => { onPostponeTask(task.id, 7); setOpenPostponeMenu(null); }}>На неделю</button>
-                                                                        <button onClick={() => { onOpenTaskDetailModal(task); setOpenPostponeMenu(null); }}>Выбрать дату...</button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon edit-btn"><IconEdit /></button>
-                                                            <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn"><IconTrash /></button>
-                                                        </div>
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
-                                    </div>
-                                )
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                {/* Scratchpad */}
-                <div className="card scratchpad-card">
-                    <div className="card-header">
-                        <h2>Блокнот</h2>
-                        <button onClick={onOpenScratchpad} className="expand-btn" aria-label="Развернуть блокнот">
-                            <IconExternalLink />
-                        </button>
-                    </div>
-                    <div className="scratchpad-content">
-                        <textarea 
-                            value={scratchpad} 
-                            onChange={(e) => onScratchpadChange(e.target.value)} 
-                            placeholder="Место для быстрых заметок..."
-                            className="scratchpad-textarea"
-                            rows={4}
-                        />
-                    </div>
-                </div>
-
-                {/* My Documents */}
-                <div className="card">
-                    <div className="card-header">
-                        <h2>Мои файлы</h2>
-                        <button onClick={onOpenGlobalDocumentModal} className="btn btn-secondary add-document-btn">+ Добавить</button>
-                    </div>
-                    <ul className="document-list">
-                        {globalDocuments.map(doc => (
-                            <li key={doc.id} className="document-list-item">
-                                <IconDocument />
-                                <div className="doc-info">
-                                    <span>{doc.name}</span>
-                                    <small>{new Date(doc.date).toLocaleDateString('ru-RU')}</small>
-                                </div>
-                                <div className="doc-actions">
-                                    <a href={doc.dataUrl} download={doc.name} className="btn-icon" aria-label="Скачать" rel="noopener noreferrer"><IconDownload /></a>
-                                    <button onClick={() => onDeleteGlobalDocument(doc.id)} className="btn-icon" aria-label="Удалить"><IconTrash /></button>
-                                </div>
-                            </li>
-                        ))}
-                        {globalDocuments.length === 0 && (
-                            <div className="empty-list-message-with-button">
-                                <p className="empty-list-message">У вас пока нет документов. Загрузите важные файлы, чтобы они всегда были под рукой!</p>
-                                <button onClick={onOpenGlobalDocumentModal} className="btn btn-primary">+ Добавить документ</button>
-                            </div>
-                        )}
-                    </ul>
-                </div>
-            </main>
-        </>
-    );
-};
+    }, [tasks, taskFilter]);
 
     return (
         <>
@@ -359,11 +154,9 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                         <ul>
                                             {tasks.map(task => {
                                                 const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
-                                                const priorityClass = `priority-${task.priority || 'medium'}`;
 
                                                 return (
                                                     <li key={task.id} className={task.completed ? 'completed' : ''}>
-                                                        <span className={`priority-indicator ${priorityClass}`}></span>
                                                         <input 
                                                             type="checkbox" 
                                                             checked={task.completed} 
@@ -377,17 +170,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                                             </div>
                                                         </div>
                                                         <div className="task-actions">
-                                                            <div className="postpone-container">
-                                                                <button onClick={() => setOpenPostponeMenu(openPostponeMenu === task.id ? null : task.id)} className="btn-icon postpone-btn"><IconCalendar /></button>
-                                                                {openPostponeMenu === task.id && (
-                                                                    <div className="postpone-menu">
-                                                                        <button onClick={() => { onPostponeTask(task.id, 1); setOpenPostponeMenu(null); }}>На завтра</button>
-                                                                        <button onClick={() => { onPostponeTask(task.id, 3); setOpenPostponeMenu(null); }}>На 3 дня</button>
-                                                                        <button onClick={() => { onPostponeTask(task.id, 7); setOpenPostponeMenu(null); }}>На неделю</button>
-                                                                        <button onClick={() => { onOpenTaskDetailModal(task); setOpenPostponeMenu(null); }}>Выбрать дату...</button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                            <button onClick={() => onPostponeTask(task.id)} className="btn-icon postpone-btn"><IconCalendar /></button>
                                                             <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon edit-btn"><IconEdit /></button>
                                                             <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn"><IconTrash /></button>
                                                         </div>
