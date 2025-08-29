@@ -362,7 +362,18 @@ const App: React.FC = () => {
         if (savedConsumables) { try { setConsumables(JSON.parse(savedConsumables)); } catch (e) { console.error("Failed to parse consumables", e); } }
 
         const savedTasks = localStorage.getItem('tasks');
-        if (savedTasks) { try { setTasks(JSON.parse(savedTasks)); } catch (e) { console.error("Failed to parse tasks", e); } }
+        console.log('🔄 Loading tasks from localStorage:', savedTasks);
+        if (savedTasks) { 
+            try { 
+                const parsedTasks = JSON.parse(savedTasks);
+                console.log('✅ Loaded tasks:', parsedTasks.length, 'tasks');
+                setTasks(parsedTasks);
+            } catch (e) { 
+                console.error("Failed to parse tasks", e); 
+            } 
+        } else {
+            console.log('❌ No saved tasks found in localStorage');
+        }
 
         const savedScratchpad = localStorage.getItem('scratchpad');
         if (savedScratchpad) {
@@ -1058,6 +1069,7 @@ const App: React.FC = () => {
 
     // --- Workspace Handlers ---
     const handleAddTask = (text: string) => {
+        console.log('🔥 App.handleAddTask called with:', text);
         const today = new Date().toISOString().split('T')[0];
         const newTask: Task = { 
             id: Date.now(), 
@@ -1072,9 +1084,12 @@ const App: React.FC = () => {
             executor: '',
             projectId: undefined, 
         };
+        console.log('📋 Creating new task:', newTask);
         const updatedTasks = [newTask, ...tasks];
+        console.log('📊 Updated tasks array:', updatedTasks.length, 'tasks');
         setTasks(updatedTasks);
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+        console.log('💾 Tasks saved to localStorage');
     };
 
     const handleToggleTask = (id: number) => {

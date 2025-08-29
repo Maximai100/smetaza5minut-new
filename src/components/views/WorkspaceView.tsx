@@ -25,13 +25,21 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     const [sortBy, setSortBy] = useState<'priority' | 'project' | 'alphabet'>('priority');
 
     const handleAddTask = () => {
+        console.log('📝 Adding task:', newTaskText.trim());
         if (newTaskText.trim()) {
             onAddTask(newTaskText.trim());
             setNewTaskText('');
+            console.log('✅ Task added, clearing input');
         }
     };
 
     const groupedTasks = useMemo(() => {
+        console.log('🔍 Debug groupedTasks:', {
+            tasksCount: tasks.length,
+            taskFilter,
+            tasks: tasks.map(t => ({ id: t.id, text: t.text, dueDate: t.dueDate, completed: t.completed }))
+        });
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -184,11 +192,9 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                         {Object.values(groupedTasks).every((arr: Task[]) => arr.length === 0) ? (
                             <p className="empty-list-message">
                                 {taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}
-                                {process.env.NODE_ENV === 'development' && (
-                                    <small style={{display: 'block', marginTop: '8px', color: 'var(--hint-color)'}}>
-                                        Debug: Всего задач: {tasks.length}, Фильтр: {taskFilter}
-                                    </small>
-                                )}
+                                <small style={{display: 'block', marginTop: '8px', color: 'var(--hint-color)', fontSize: '11px'}}>
+                                    Debug: Всего задач: {tasks.length}, Фильтр: {taskFilter}
+                                </small>
                             </p>
                         ) : (
                             Object.entries(groupedTasks).map(([group, tasks]: [string, Task[]]) => (
