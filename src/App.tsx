@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { 
     TelegramWebApp, Item, LibraryItem, CompanyProfile, EstimateStatus, ThemeMode, Estimate, Project, FinanceEntry, 
     PhotoReport, Document, WorkStage, Note, InventoryItem, InventoryNote, Task, ConsumableItem, SettingsModalProps, EstimatesListModalProps, LibraryModalProps, 
@@ -1211,11 +1213,13 @@ const App: React.FC = () => {
                     projects={projects}
                     taskFilter={taskFilter}
                     setTaskFilter={setTaskFilter}
+                    taskAdvancedFilters={taskAdvancedFilters}
                     onAddTask={handleAddTask}
                     onToggleTask={handleToggleTask}
                     onDeleteTask={handleDeleteTask}
                     onPostponeTask={handlePostponeTask}
                     onOpenTaskDetailModal={handleOpenTaskDetailModal}
+                    onOpenFilterModal={() => openModal(setIsFilterModalOpen, 'filter')}
                     onScratchpadChange={handleScratchpadChange}
                     onOpenGlobalDocumentModal={() => openModal(setIsGlobalDocumentModalOpen, 'globalDocumentUpload')}
                     onDeleteGlobalDocument={handleDeleteGlobalDocument}

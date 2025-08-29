@@ -50,7 +50,10 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             }
 
             const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-            if (!dueDate) return taskFilter === 'all'; // Show tasks without due date only in 'all' filter
+            // Check if dueDate is a valid Date object
+            if (!dueDate || isNaN(dueDate.getTime())) {
+                return taskFilter === 'all'; // Show tasks without valid due date only in 'all' filter
+            }
             dueDate.setHours(0, 0, 0, 0);
 
             if (taskFilter === 'today') {
@@ -144,15 +147,15 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                         <button onClick={handleAddTask} className="add-task-btn"><IconPlus/></button>
                     </div>
                     <div className="task-list">
-                        {Object.values(groupedTasks).every(arr => arr.length === 0) ? (
+                        {Object.values(groupedTasks).every((arr: Task[]) => arr.length === 0) ? (
                             <p className="empty-list-message">{taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}</p>
                         ) : (
-                            Object.entries(groupedTasks).map(([group, tasks]) => (
+                            Object.entries(groupedTasks).map(([group, tasks]: [string, Task[]]) => (
                                 tasks.length > 0 && (
                                     <div key={group} className="task-group">
                                         <h3>{group}</h3>
                                         <ul>
-                                            {tasks.map(task => {
+                                            {tasks.map((task: Task) => {
                                                 const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
 
                                                 return (
@@ -170,7 +173,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                                             </div>
                                                         </div>
                                                         <div className="task-actions">
-                                                            <button onClick={() => onPostponeTask(task.id)} className="btn-icon postpone-btn"><IconCalendar /></button>
+                                                            <button onClick={() => onPostponeTask(task.id, 1)} className="btn-icon postpone-btn"><IconCalendar /></button>
                                                             <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon edit-btn"><IconEdit /></button>
                                                             <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn"><IconTrash /></button>
                                                         </div>
