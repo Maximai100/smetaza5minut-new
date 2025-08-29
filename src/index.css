@@ -1298,6 +1298,26 @@ input[type=number] { -moz-appearance: textfield; }
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    flex-wrap: nowrap;
+    gap: 16px;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.task-filters {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .card-header h2 {
@@ -1425,9 +1445,28 @@ input[type=number] { -moz-appearance: textfield; }
 
 .task-list li {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
-    font-size: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.task-list li .task-info {
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.task-list li .task-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
 }
 
 .task-list li.completed span {
@@ -1439,6 +1478,9 @@ input[type=number] { -moz-appearance: textfield; }
     flex-grow: 1;
     cursor: pointer;
     word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
 }
 
 .task-list li button {
@@ -1653,6 +1695,8 @@ input[type=number] { -moz-appearance: textfield; }
     align-items: flex-start; /* Align items to the top */
     padding: 8px 0;
     border-bottom: 1px solid var(--tg-theme-hint-color);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .task-list li:last-child {
@@ -1671,12 +1715,18 @@ input[type=number] { -moz-appearance: textfield; }
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .task-list li .task-info span {
     color: var(--tg-theme-text-color);
     cursor: pointer;
     word-break: break-word; /* Allow long text to break */
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+    line-height: 1.4;
 }
 
 .task-list li.completed .task-info span {
@@ -1710,6 +1760,8 @@ input[type=number] { -moz-appearance: textfield; }
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .task-list .task-actions .btn-icon {
@@ -1733,12 +1785,14 @@ input[type=number] { -moz-appearance: textfield; }
     border: none;
     color: var(--tg-theme-hint-color);
     cursor: pointer;
-    margin-left: 10px;
+    margin-left: 5px;
     padding: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0; /* Prevent button from shrinking */
+    min-width: 28px;
+    min-height: 28px;
 }
 
 .task-list li button .icon-wrapper svg {

@@ -347,7 +347,7 @@ export interface ReportsViewProps {
 
 export interface WorkspaceViewProps {
     tasks: Task[];
-    scratchpadItems: ScratchpadItem[];
+    scratchpad: string;
     globalDocuments: Document[];
     projects: Project[];
     taskFilter: TaskFilter;
@@ -357,9 +357,7 @@ export interface WorkspaceViewProps {
     onDeleteTask: (id: number) => void;
     onPostponeTask: (id: number) => void;
     onOpenTaskDetailModal: (task: Task | null) => void;
-    onAddScratchpadItem: (text: string) => void;
-    onToggleScratchpadItem: (id: number) => void;
-    onDeleteScratchpadItem: (id: number) => void;
+    onScratchpadChange: (text: string) => void;
     onOpenGlobalDocumentModal: () => void;
     onDeleteGlobalDocument: (id: number) => void;
     onOpenScratchpad: () => void;
@@ -376,7 +374,37 @@ export interface TaskDetailModalProps {
 }
 
 export interface ScratchpadViewProps {
-    content: string; // This will still be a string for now, as we are not changing the full screen scratchpad to checklist
+    content: string;
     onSave: (content: string) => void;
     onBack: () => void;
+}
+
+export type TaskFilter = 'all' | 'today' | 'week' | 'overdue' | 'completed';
+
+export interface Subtask {
+    id: number;
+    text: string;
+    completed: boolean;
+}
+
+export interface Attachment {
+    id: number;
+    name: string;
+    dataUrl: string; // Base64 encoded file
+    type: string; // MIME type
+}
+
+export interface Task {
+    id: number;
+    text: string;
+    completed: boolean;
+    dueDate?: string;
+    priority?: 'low' | 'medium' | 'high';
+    projectId?: number;
+    description?: string;
+    executor?: string;
+    comments?: string;
+    subtasks?: Subtask[];
+    attachments?: Attachment[];
+    tags?: string[];
 }

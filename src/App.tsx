@@ -58,7 +58,7 @@ const App: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
     const [editingTask, setEditingTask] = useState<Task | null>(null);
-    const [scratchpadItems, setScratchpadItems] = useState<ScratchpadItem[]>([]);
+    const [scratchpad, setScratchpad] = useState('');
     
     // --- Current Estimate State ---
     const [activeEstimateId, setActiveEstimateId] = useState<number | null>(null);
@@ -358,18 +358,7 @@ const App: React.FC = () => {
 
         const savedScratchpad = localStorage.getItem('scratchpad');
         if (savedScratchpad) {
-            try {
-                const parsedScratchpad = JSON.parse(savedScratchpad);
-                if (Array.isArray(parsedScratchpad)) {
-                    setScratchpadItems(parsedScratchpad);
-                } else {
-                    // Migrate old string scratchpad to new checklist format
-                    setScratchpadItems([{ id: Date.now(), text: parsedScratchpad, completed: false }]);
-                }
-            } catch (e) {
-                // If parsing fails, it's likely an old string format
-                setScratchpadItems([{ id: Date.now(), text: savedScratchpad, completed: false }]);
-            }
+            setScratchpad(savedScratchpad);
         }
 
     }, []);
@@ -1044,25 +1033,9 @@ const App: React.FC = () => {
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     };
 
-    const handleAddScratchpadItem = (text: string) => {
-        const newItem = { id: Date.now(), text, completed: false };
-        const updatedItems = [...scratchpadItems, newItem];
-        setScratchpadItems(updatedItems);
-        localStorage.setItem('scratchpad', JSON.stringify(updatedItems));
-    };
-
-    const handleToggleScratchpadItem = (id: number) => {
-        const updatedItems = scratchpadItems.map(item => 
-            item.id === id ? { ...item, completed: !item.completed } : item
-        );
-        setScratchpadItems(updatedItems);
-        localStorage.setItem('scratchpad', JSON.stringify(updatedItems));
-    };
-
-    const handleDeleteScratchpadItem = (id: number) => {
-        const updatedItems = scratchpadItems.filter(item => item.id !== id);
-        setScratchpadItems(updatedItems);
-        localStorage.setItem('scratchpad', JSON.stringify(updatedItems));
+    const handleScratchpadChange = (text: string) => {
+        setScratchpad(text);
+        localStorage.setItem('scratchpad', text);
     };
 
     const handleBackup = () => {
@@ -1078,7 +1051,7 @@ const App: React.FC = () => {
             libraryItems,
             companyProfile,
             tasks,
-            scratchpadItems,
+            scratchpad,
         };
 
         const json = JSON.stringify(backupData, null, 2);
@@ -1114,7 +1087,7 @@ const App: React.FC = () => {
                 setLibraryItems(restoredData.libraryItems || []);
                 setCompanyProfile(restoredData.companyProfile || { name: '', details: '', logo: null });
                 setTasks(restoredData.tasks || []);
-                setScratchpadItems(restoredData.scratchpadItems || []);
+                setScratchpad(restoredData.scratchpad || '');
 
                 localStorage.setItem('estimatesData', JSON.stringify({ estimates: restoredData.estimates || [], activeEstimateId: null }));
                 localStorage.setItem('estimateTemplates', JSON.stringify(restoredData.templates || []));
@@ -1127,7 +1100,7 @@ const App: React.FC = () => {
                 localStorage.setItem('itemLibrary', JSON.stringify(restoredData.libraryItems || []));
                 localStorage.setItem('companyProfile', JSON.stringify(restoredData.companyProfile || { name: '', details: '', logo: null }));
                 localStorage.setItem('tasks', JSON.stringify(restoredData.tasks || []));
-                localStorage.setItem('scratchpad', JSON.stringify(restoredData.scratchpadItems || []));
+                localStorage.setItem('scratchpad', restoredData.scratchpad || '');
 
                 safeShowAlert('Данные успешно восстановлены!');
             } catch (error) {
@@ -1155,7 +1128,7 @@ const App: React.FC = () => {
             case 'workspace':
                 return <WorkspaceView 
                     tasks={tasks}
-                    scratchpadItems={scratchpadItems}
+                    scratchpad={scratchpad}
                     globalDocuments={globalDocuments}
                     projects={projects}
                     taskFilter={taskFilter}
@@ -1165,9 +1138,7 @@ const App: React.FC = () => {
                     onDeleteTask={handleDeleteTask}
                     onPostponeTask={handlePostponeTask}
                     onOpenTaskDetailModal={handleOpenTaskDetailModal}
-                    onAddScratchpadItem={handleAddScratchpadItem}
-                    onToggleScratchpadItem={handleToggleScratchpadItem}
-                    onDeleteScratchpadItem={handleDeleteScratchpadItem}
+                    onScratchpadChange={handleScratchpadChange}
                     onOpenGlobalDocumentModal={() => openModal(setIsGlobalDocumentModalOpen, 'globalDocumentUpload')}
                     onDeleteGlobalDocument={handleDeleteGlobalDocument}
                     onOpenScratchpad={() => setActiveView('scratchpad')}

@@ -243,7 +243,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                 {/* My Documents */}
                 <div className="card">
                     <div className="card-header">
-                        <h2>Мои документы</h2>
+                        <h2>Мои файлы</h2>
                         <button onClick={onOpenGlobalDocumentModal} className="btn btn-secondary add-document-btn">+ Добавить</button>
                     </div>
                     <ul className="document-list">
