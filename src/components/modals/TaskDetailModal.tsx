@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Task, Project, Subtask, Attachment, TaskDetailModalProps } from '../../types';
+import { Task, Project, Subtask, TaskDetailModalProps } from '../../types';
 import { IconClose, IconTrash, IconPlus } from '../common/Icon';
-import { safeShowAlert } from '../../utils';
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects, onClose, onSave, onDelete, showAlert, onInputFocus }) => {
     const [currentTask, setCurrentTask] = useState<Task>(task || {
@@ -11,7 +10,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects
         dueDate: new Date().toISOString().split('T')[0],
         priority: 'medium',
         subtasks: [],
-        attachments: [],
         tags: [],
     });
     const [newSubtaskText, setNewSubtaskText] = useState('');
@@ -168,39 +166,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects
                         </ul>
                     </div>
 
-                    {/* Attachments */}
-                    <div className="attachments-section">
-                        <h3>Прикрепленные файлы</h3>
-                        <input
-                            type="file"
-                            onChange={async (e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    const file = e.target.files[0];
-                                    const reader = new FileReader();
-                                    reader.onload = (event) => {
-                                        if (event.target && typeof event.target.result === 'string') {
-                                            const newAttachment: Attachment = {
-                                                id: Date.now(),
-                                                name: file.name,
-                                                dataUrl: event.target.result,
-                                                type: file.type,
-                                            };
-                                            handleTaskChange('attachments', [...(currentTask.attachments || []), newAttachment]);
-                                        }
-                                    };
-                                    reader.readAsDataURL(file);
-                                }
-                            }}
-                        />
-                        <ul className="attachment-list">
-                            {(currentTask.attachments || []).map(att => (
-                                <li key={att.id}>
-                                    <span>{att.name}</span>
-                                    <button onClick={() => handleTaskChange('attachments', (currentTask.attachments || []).filter(a => a.id !== att.id))}><IconClose /></button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    
 
                     {/* Tags */}
                     <div className="tags-section">

@@ -1015,17 +1015,21 @@ const App: React.FC = () => {
     };
 
     const handleDeleteTask = (id: number) => {
-        const updatedTasks = tasks.filter(t => t.id !== id);
-        setTasks(updatedTasks);
-        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+        safeShowConfirm('Вы уверены, что хотите удалить эту задачу?', (ok) => {
+            if (ok) {
+                const updatedTasks = tasks.filter(t => t.id !== id);
+                setTasks(updatedTasks);
+                localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+            }
+        });
     };
 
-    const handlePostponeTask = (id: number) => {
+    const handlePostponeTask = (id: number, days: number) => {
         const updatedTasks = tasks.map(t => {
             if (t.id === id) {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                return { ...t, dueDate: tomorrow.toISOString().split('T')[0] };
+                const newDueDate = new Date();
+                newDueDate.setDate(newDueDate.getDate() + days);
+                return { ...t, dueDate: newDueDate.toISOString().split('T')[0] };
             }
             return t;
         });

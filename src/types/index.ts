@@ -355,7 +355,7 @@ export interface WorkspaceViewProps {
     onAddTask: (text: string) => void;
     onToggleTask: (id: number) => void;
     onDeleteTask: (id: number) => void;
-    onPostponeTask: (id: number) => void;
+    onPostponeTask: (id: number, days: number) => void;
     onOpenTaskDetailModal: (task: Task | null) => void;
     onScratchpadChange: (text: string) => void;
     onOpenGlobalDocumentModal: () => void;
@@ -387,13 +387,6 @@ export interface Subtask {
     completed: boolean;
 }
 
-export interface Attachment {
-    id: number;
-    name: string;
-    dataUrl: string; // Base64 encoded file
-    type: string; // MIME type
-}
-
 export interface Task {
     id: number;
     text: string;
@@ -405,6 +398,5 @@ export interface Task {
     executor?: string;
     comments?: string;
     subtasks?: Subtask[];
-    attachments?: Attachment[];
     tags?: string[];
 }
