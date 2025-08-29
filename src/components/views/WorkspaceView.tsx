@@ -158,35 +158,8 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                                                 const priorityClass = `priority-${task.priority || 'medium'}`;
 
                                                 return (
-                                                    <li key={task.id} className={task.completed ? 'completed' : ''}>
-                                                        <span className={`priority-indicator ${priorityClass}`}></span>
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={task.completed} 
-                                                            onChange={() => onToggleTask(task.id)}
-                                                        />
-                                                        <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
-                                                            <span>{task.text}</span>
-                                                            <div className="task-meta">
-                                                                {project && <span className="task-project">{project.name}</span>}
-                                                                {task.dueDate && <span className="task-due-date">{new Date(task.dueDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="task-actions">
-                                                            <div className="postpone-container">
-                                                                <button onClick={() => setOpenPostponeMenu(openPostponeMenu === task.id ? null : task.id)} className="btn-icon postpone-btn"><IconCalendar /></button>
-                                                                {openPostponeMenu === task.id && (
-                                                                    <div className="postpone-menu">
-                                                                        <button onClick={() => { onPostponeTask(task.id, 1); setOpenPostponeMenu(null); }}>На завтра</button>
-                                                                        <button onClick={() => { onPostponeTask(task.id, 3); setOpenPostponeMenu(null); }}>На 3 дня</button>
-                                                                        <button onClick={() => { onPostponeTask(task.id, 7); setOpenPostponeMenu(null); }}>На неделю</button>
-                                                                        <button onClick={() => { onOpenTaskDetailModal(task); setOpenPostponeMenu(null); }}>Выбрать дату...</button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <button onClick={() => onOpenTaskDetailModal(task)} className="btn-icon edit-btn"><IconEdit /></button>
-                                                            <button onClick={() => onDeleteTask(task.id)} className="btn-icon delete-btn"><IconTrash /></button>
-                                                        </div>
+                                                    <li key={task.id}>
+                                                        <span>{task.text}</span>
                                                     </li>
                                                 );
                                             })}
