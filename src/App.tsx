@@ -1070,12 +1070,14 @@ const App: React.FC = () => {
     // --- Workspace Handlers ---
     const handleAddTask = (text: string) => {
         console.log('🔥 App.handleAddTask called with:', text);
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        console.log('📅 Today date:', todayString);
         const newTask: Task = { 
             id: Date.now(), 
             text, 
             completed: false, 
-            dueDate: today, 
+            dueDate: todayString, 
             priority: 'medium', 
             description: '',
             subtasks: [],

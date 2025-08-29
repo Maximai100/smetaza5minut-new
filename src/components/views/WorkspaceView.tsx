@@ -42,12 +42,18 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
+        
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
 
         const endOfWeek = new Date(today);
         endOfWeek.setDate(today.getDate() + (7 - today.getDay()));
+        
+        console.log('📅 Date comparison:', {
+            today: today.toISOString().split('T')[0],
+            tomorrow: tomorrow.toISOString().split('T')[0],
+            endOfWeek: endOfWeek.toISOString().split('T')[0]
+        });
 
         const filteredTasks = tasks.filter(task => {
             if (taskFilter === 'completed') {
@@ -63,21 +69,32 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             const dueDate = task.dueDate ? new Date(task.dueDate) : null;
             // Check if dueDate is a valid Date object
             if (!dueDate || isNaN(dueDate.getTime())) {
+                console.log('❌ Invalid date for task:', task.text, task.dueDate);
                 return taskFilter === 'all'; // Show tasks without valid due date only in 'all' filter
             }
             dueDate.setHours(0, 0, 0, 0);
 
-            if (taskFilter === 'today') {
-                return dueDate.getTime() === today.getTime();
-            }
-            if (taskFilter === 'week') {
-                return dueDate.getTime() >= today.getTime() && dueDate.getTime() <= endOfWeek.getTime();
-            }
-            if (taskFilter === 'overdue') {
-                return dueDate.getTime() < today.getTime();
-            }
+            const matchesFilter = (() => {
+                if (taskFilter === 'today') {
+                    const matches = dueDate.getTime() === today.getTime();
+                    console.log('🔍 Today filter:', {
+                        task: task.text,
+                        taskDate: task.dueDate,
+                        todayDate: today.toISOString().split('T')[0],
+                        matches
+                    });
+                    return matches;
+                }
+                if (taskFilter === 'week') {
+                    return dueDate.getTime() >= today.getTime() && dueDate.getTime() <= endOfWeek.getTime();
+                }
+                if (taskFilter === 'overdue') {
+                    return dueDate.getTime() < today.getTime();
+                }
+                return true;
+            })();
 
-            return true; // Should not be reached if filter is one of the above
+            return matchesFilter;
         });
 
         if (taskFilter === 'completed') {
@@ -102,17 +119,29 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             const dueDate = new Date(task.dueDate);
             dueDate.setHours(0, 0, 0, 0);
 
-            if (dueDate.getTime() < today.getTime()) {
-                groups['Просроченные'].push(task);
-            } else if (dueDate.getTime() === today.getTime()) {
-                groups['Сегодня'].push(task);
-            } else if (dueDate.getTime() === tomorrow.getTime()) {
-                groups['Завтра'].push(task);
-            } else if (dueDate.getTime() <= endOfWeek.getTime()) {
-                groups['На этой неделе'].push(task);
-            } else {
-                groups['Предстоящие'].push(task);
-            }
+            const group = (() => {
+                if (dueDate.getTime() < today.getTime()) {
+                    return 'Просроченные';
+                } else if (dueDate.getTime() === today.getTime()) {
+                    return 'Сегодня';
+                } else if (dueDate.getTime() === tomorrow.getTime()) {
+                    return 'Завтра';
+                } else if (dueDate.getTime() <= endOfWeek.getTime()) {
+                    return 'На этой неделе';
+                } else {
+                    return 'Предстоящие';
+                }
+            })();
+
+            console.log('📋 Grouping task:', {
+                task: task.text,
+                taskDate: task.dueDate,
+                group: group,
+                dueDateMs: dueDate.getTime(),
+                todayMs: today.getTime()
+            });
+
+            groups[group].push(task);
         });
 
         // Сортировка внутри каждой группы
@@ -132,6 +161,9 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                 }
             });
         });
+
+        const groupSummary = Object.entries(groups).map(([name, tasks]) => ({ [name]: tasks.length }));
+        console.log('📊 Group summary:', groupSummary);
 
         return groups;
     }, [tasks, taskFilter, sortBy, projects]);
