@@ -345,27 +345,73 @@ export interface ReportsViewProps {
     financeEntries: FinanceEntry[];
 }
 
+export type TaskFilter = 'all' | 'today' | 'week' | 'overdue' | 'completed';
+
+export interface Subtask {
+    id: number;
+    text: string;
+    completed: boolean;
+}
+
+export interface Attachment {
+    id: number;
+    name: string;
+    dataUrl: string; // Base64 encoded file
+    type: string; // MIME type
+}
+
 export interface Task {
   id: number;
   text: string;
   completed: boolean;
+  dueDate?: string; // YYYY-MM-DD
+  projectId?: number; // ID проекта, к которому привязана задача
+  executor?: string; // Исполнитель задачи
+  priority?: 'low' | 'medium' | 'high'; // Приоритет задачи
+  description?: string; // Описание задачи
+  comments?: string; // Комментарии к задаче
+  subtasks?: Subtask[]; // Чек-лист подзадач
+  attachments?: Attachment[]; // Прикрепленные файлы
+  tags?: string[]; // Метки/теги
+}
+
+export interface ScratchpadItem {
+    id: number;
+    text: string;
+    completed: boolean;
 }
 
 export interface WorkspaceViewProps {
     tasks: Task[];
-    scratchpad: string;
+    scratchpadItems: ScratchpadItem[];
     globalDocuments: Document[];
+    projects: Project[]; // Добавляем проекты для отображения названия проекта в задаче
+    taskFilter: TaskFilter;
+    setTaskFilter: React.Dispatch<React.SetStateAction<TaskFilter>>;
     onAddTask: (text: string) => void;
     onToggleTask: (id: number) => void;
     onDeleteTask: (id: number) => void;
-    onScratchpadChange: (text: string) => void;
+    onOpenTaskDetailModal: (task: Task | null) => void; // Добавляем пропс для открытия модального окна деталей задачи
+    onAddScratchpadItem: (text: string) => void;
+    onToggleScratchpadItem: (id: number) => void;
+    onDeleteScratchpadItem: (id: number) => void;
     onOpenGlobalDocumentModal: () => void;
     onDeleteGlobalDocument: (id: number) => void;
     onOpenScratchpad: () => void;
 }
 
+export interface TaskDetailModalProps {
+    task: Task | null;
+    projects: Project[];
+    onClose: () => void;
+    onSave: (task: Task) => void;
+    onDelete: (id: number) => void;
+    showAlert: (message: string) => void;
+    onInputFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+}
+
 export interface ScratchpadViewProps {
-    content: string;
+    content: string; // This will still be a string for now, as we are not changing the full screen scratchpad to checklist
     onSave: (content: string) => void;
     onBack: () => void;
 }
