@@ -375,6 +375,12 @@ export interface Task {
   tags?: string[]; // Метки/теги
 }
 
+export interface ScratchpadItem {
+    id: number;
+    text: string;
+    completed: boolean;
+}
+
 export interface WorkspaceViewProps {
     tasks: Task[];
     scratchpadItems: ScratchpadItem[];
@@ -405,8 +411,7 @@ export interface TaskDetailModalProps {
 }
 
 export interface ScratchpadViewProps {
-    content: string;
+    content: string; // This will still be a string for now, as we are not changing the full screen scratchpad to checklist
     onSave: (content: string) => void;
     onBack: () => void;
 }
-

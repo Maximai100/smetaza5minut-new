@@ -21,11 +21,19 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     onOpenScratchpad,
 }) => {
     const [newTaskText, setNewTaskText] = useState('');
+    const [newScratchpadItemText, setNewScratchpadItemText] = useState('');
 
     const handleAddTask = () => {
         if (newTaskText.trim()) {
             onAddTask(newTaskText.trim());
             setNewTaskText('');
+        }
+    };
+
+    const handleAddScratchpadItem = () => {
+        if (newScratchpadItemText.trim()) {
+            onAddScratchpadItem(newScratchpadItemText.trim());
+            setNewScratchpadItemText('');
         }
     };
 
@@ -189,4 +197,3 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         </>
     );
 };
-    

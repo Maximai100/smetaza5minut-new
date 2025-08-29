@@ -1161,6 +1161,35 @@ const App: React.FC = () => {
         return themeMode === 'light' ? <IconSun /> : <IconMoon />;
     }, [themeMode]);
 
+    const filteredTasks = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of current week (Sunday)
+
+        return tasks.filter(task => {
+            if (taskFilter === 'all') return true;
+            if (taskFilter === 'completed') return task.completed;
+            if (task.completed) return false; // Don't show completed tasks in other filters
+
+            const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+            if (!taskDueDate) return false; // Tasks without due date are not filtered by date
+
+            taskDueDate.setHours(0, 0, 0, 0);
+
+            if (taskFilter === 'today') {
+                return taskDueDate.getTime() === today.getTime();
+            }
+            if (taskFilter === 'week') {
+                return taskDueDate.getTime() >= today.getTime() && taskDueDate.getTime() <= endOfWeek.getTime();
+            }
+            if (taskFilter === 'overdue') {
+                return taskDueDate.getTime() < today.getTime();
+            }
+            return true;
+        });
+    }, [tasks, taskFilter]);
+
     const renderView = () => {
         switch (activeView) {
             case 'workspace':
