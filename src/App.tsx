@@ -1002,7 +1002,19 @@ const App: React.FC = () => {
     // --- Workspace Handlers ---
     const handleAddTask = (text: string) => {
         const today = new Date().toISOString().split('T')[0];
-        const newTask: Task = { id: Date.now(), text, completed: false, dueDate: today, projectId: undefined };
+        const newTask: Task = { 
+            id: Date.now(), 
+            text, 
+            completed: false, 
+            dueDate: today, 
+            priority: 'medium', 
+            description: '',
+            subtasks: [],
+            tags: [],
+            comments: '',
+            executor: '',
+            projectId: undefined, 
+        };
         const updatedTasks = [newTask, ...tasks];
         setTasks(updatedTasks);
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
