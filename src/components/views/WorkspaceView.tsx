@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { WorkspaceViewProps } from '../../types';
-import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink } from '../common/Icon';
+import { WorkspaceViewProps, TaskFilter } from '../../types';
+import { IconPlus, IconTrash, IconDocument, IconDownload, IconExternalLink, IconClose, IconEdit } from '../common/Icon';
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     tasks,
-    scratchpad,
+    scratchpadItems,
     globalDocuments,
+    projects,
+    taskFilter,
+    setTaskFilter,
     onAddTask,
     onToggleTask,
     onDeleteTask,
-    onScratchpadChange,
+    onOpenTaskDetailModal,
+    onAddScratchpadItem,
+    onToggleScratchpadItem,
+    onDeleteScratchpadItem,
     onOpenGlobalDocumentModal,
     onDeleteGlobalDocument,
     onOpenScratchpad,
@@ -31,7 +37,16 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             <main className="workspace-container">
                 {/* Tasks */}
                 <div className="card">
-                    <h2>Мои задачи</h2>
+                    <div className="card-header">
+                        <h2>Мои задачи</h2>
+                        <div className="task-filters">
+                            <button onClick={() => setTaskFilter('all')} className={taskFilter === 'all' ? 'active' : ''}>Все</button>
+                            <button onClick={() => setTaskFilter('today')} className={taskFilter === 'today' ? 'active' : ''}>Сегодня</button>
+                            <button onClick={() => setTaskFilter('week')} className={taskFilter === 'week' ? 'active' : ''}>Неделя</button>
+                            <button onClick={() => setTaskFilter('overdue')} className={taskFilter === 'overdue' ? 'active' : ''}>Просроченные</button>
+                            <button onClick={() => setTaskFilter('completed')} className={taskFilter === 'completed' ? 'active' : ''}>Выполненные</button>
+                        </div>
+                    </div>
                     <div className="task-input-container">
                         <textarea 
                             value={newTaskText} 
@@ -54,13 +69,47 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                         <button onClick={handleAddTask} className="add-task-btn"><IconPlus/></button>
                     </div>
                     <ul className="task-list">
-                        {tasks.map(task => (
-                            <li key={task.id} className={task.completed ? 'completed' : ''}>
-                                <span onClick={() => onToggleTask(task.id)}>{task.text}</span>
-                                <button onClick={() => onDeleteTask(task.id)}><IconTrash /></button>
-                            </li>
-                        ))}
-                         {tasks.length === 0 && <p className="empty-list-message">У вас пока нет задач. Добавьте свою первую задачу выше!</p>}
+                        {tasks.length === 0 ? (
+                            <p className="empty-list-message">{taskFilter === 'all' ? 'У вас пока нет задач. Добавьте свою первую задачу выше!' : 'Задач по выбранному фильтру не найдено.'}</p>
+                        ) : (
+                            tasks.map(task => {
+                                const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+                                taskDueDate?.setHours(0, 0, 0, 0);
+
+                                let dueDateText = '';
+                                if (taskDueDate) {
+                                    if (taskDueDate.getTime() === today.getTime()) {
+                                        dueDateText = 'Сегодня';
+                                    } else if (taskDueDate.getTime() < today.getTime()) {
+                                        dueDateText = 'Просрочено';
+                                    } else {
+                                        dueDateText = taskDueDate.toLocaleDateString('ru-RU');
+                                    }
+                                }
+
+                                return (
+                                    <li key={task.id} className={task.completed ? 'completed' : ''}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={task.completed} 
+                                            onChange={() => onToggleTask(task.id)}
+                                        />
+                                        <div className="task-info" onClick={() => onOpenTaskDetailModal(task)}>
+                                            <span>{task.text}</span>
+                                            <div className="task-meta">
+                                                {project && <span className="task-project">{project.name}</span>}
+                                                {dueDateText && <span className={`task-due-date ${dueDateText === 'Просрочено' ? 'overdue' : ''}`}>{dueDateText}</span>}
+                                            </div>
+                                        </div>
+                                        <button onClick={() => onOpenTaskDetailModal(task)}><IconEdit /></button>
+                                        <button onClick={() => onDeleteTask(task.id)}><IconTrash /></button>
+                                    </li>
+                                );
+                            })
+                        )}
                     </ul>
                 </div>
 
@@ -72,12 +121,40 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                             <IconExternalLink />
                         </button>
                     </div>
-                    <textarea 
-                        value={scratchpad} 
-                        onChange={(e) => onScratchpadChange(e.target.value)} 
-                        placeholder="Место для быстрых заметок..."
-                        rows={6}
-                    />
+                    <div className="scratchpad-checklist">
+                        <div className="scratchpad-input-container">
+                            <input 
+                                type="text"
+                                value={newScratchpadItemText}
+                                onChange={(e) => setNewScratchpadItemText(e.target.value)}
+                                placeholder="Добавить пункт в чек-лист..."
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddScratchpadItem();
+                                    }
+                                }}
+                            />
+                            <button onClick={handleAddScratchpadItem} className="add-item-btn"><IconPlus/></button>
+                        </div>
+                        <ul className="scratchpad-list">
+                            {scratchpadItems.length === 0 ? (
+                                <p className="empty-list-message">Ваш чек-лист пуст. Добавьте первый пункт!</p>
+                            ) : (
+                                scratchpadItems.map(item => (
+                                    <li key={item.id} className={item.completed ? 'completed' : ''}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={item.completed} 
+                                            onChange={() => onToggleScratchpadItem(item.id)}
+                                        />
+                                        <span onClick={() => onToggleScratchpadItem(item.id)}>{item.text}</span>
+                                        <button onClick={() => onDeleteScratchpadItem(item.id)}><IconClose /></button>
+                                    </li>
+                                ))
+                            )}
+                        </ul>
+                    </div>
                 </div>
 
                 {/* My Documents */}
